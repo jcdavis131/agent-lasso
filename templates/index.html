@@ -158,17 +158,20 @@
             left: 0;
             right: 0;
             /* Theme-driven gradient with drifting stars */
-            background: radial-gradient(#ffffff22 1px, transparent 1px), var(--header-gradient);
+            background: radial-gradient(#ffffff22 1px, transparent 1px), var(--body-gradient);
             background-size: 3px 3px, 400% 400%;
             background-position: 0 0, 0 0;
             animation: starShift 180s linear infinite, gradientShift 15s ease infinite;
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            border-bottom: 1px solid rgba(74, 87, 108, 0.804);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             transform: translateY(0);
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
+            height: 100vh; /* Cover full viewport */
+            bottom: 0; /* Ensure full page coverage */
+            overflow-y: auto; /* Allow scrolling inside drawer if needed */
         }
         /* Decorative glowing blobs */
         .header-drawer::before, .header-drawer::after {
@@ -184,7 +187,7 @@
             left: -150px;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.35), transparent 70%);
+            background: radial-gradient(circle at center, rgba(43, 43, 43, 0.35), transparent 99%);
             animation: floatBlob 18s ease-in-out infinite alternate;
         }
         .header-drawer::after {
@@ -192,7 +195,7 @@
             right: -180px;
             width: 700px;
             height: 700px;
-            background: radial-gradient(circle at center, rgba(96, 165, 250, 0.3), transparent 70%);
+            background: radial-gradient(circle at center, rgba(43, 43, 43, 0.35), transparent 99%);
             animation: floatBlob 22s ease-in-out infinite alternate;
         }
         .header-drawer.collapsed {
@@ -241,14 +244,18 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         .hero-title {
-            background: linear-gradient(135deg, #495576 0%, #7c808b 50%, #738f9b2d 100%);
+            background: linear-gradient(135deg, #86878ae6 0%, #53565e 50%, #b9caca9d 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 3rem;
-            font-weight: bold;
+            font-size: 5rem;
+            font-weight: 600;
+            font-style: oblique;
+            text-shadow: 0 0 3px #d4cfcfa5;
             text-align: center;
             margin-bottom: 1rem;
+            background-color: #a5a5ab;
+            opacity: 0.4;
         }
         .hero-subtitle {
             text-align: center;
@@ -261,7 +268,7 @@
             transition: margin-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .main-content.drawer-open {
-            margin-top: 420px;
+            margin-top: 0; /* No push-down since drawer overlays entire page */
         }
         @media (max-width: 768px) {
             .hero-title {
@@ -419,7 +426,7 @@
                     <img src="/static/logo-hero.png" alt="Silver Lasso" class="brand-logo logo-icon" style="width: 8rem; height: 8rem;"></center>
                 </center>
                 <h1 class="hero-title">Silver Lasso</h1>
-                <p class="hero-subtitle">Configure, Play, Benchmark.</p>
+                <p class="hero-subtitle">Configure. Play. Benchmark.</p>
                 <p class="text-center text-gray-400 mt-2">Silver Lasso lets you build AI agents, try them in a live playground, and benchmark performance with built-in tests.</p>
             </div>
             
@@ -464,7 +471,7 @@
                     <p class="text-gray-300 text-sm">Measure response times, accuracy, and overall performance with comprehensive testing.</p>
                 </div>
             </div>
-            
+            <br>
             <!-- Quick Start -->
             <div class="text-center">
                 <div class="flex justify-center items-center space-x-4 text-sm text-gray-400">
