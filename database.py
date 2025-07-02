@@ -3,9 +3,25 @@ import threading
 from typing import List, Tuple, Dict, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
+import os
 import json
 
-DB_NAME = 'agent_log.db'
+# ---------------------------------------------------------------------------
+# SQLite file location
+# ---------------------------------------------------------------------------
+# Vercel (and most serverless platforms) mount the project root as **read-only**.
+# The only writable directory is /tmp.  Detect such environments and store the
+# SQLite file there; otherwise use the project root for local development.
+# You can also override via the DATABASE_PATH env var.
+# ---------------------------------------------------------------------------
+
+if os.getenv("DATABASE_PATH"):
+    DB_NAME = os.getenv("DATABASE_PATH")
+else:
+    running_on_vercel = any(
+        key in os.environ for key in ("VERCEL", "VERCEL_URL", "VERCEL_ENV")
+    )
+    DB_NAME = "/tmp/agent_log.db" if running_on_vercel else "agent_log.db"
 
 # Thread-local storage for database connections
 local = threading.local()

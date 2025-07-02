@@ -1,7 +1,7 @@
 import logging
 import os
 from fastapi import FastAPI, Request, APIRouter, HTTPException, Depends
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -150,6 +150,17 @@ app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
+
+# ---------------------------------------------------------------------------
+# Favicon
+# ---------------------------------------------------------------------------
+
+# Browsers request /favicon.ico – serve the hero logo to avoid 404s.
+# We use PNG directly; modern browsers accept this format.
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(os.path.join(static_path, "logo-hero.png"), media_type="image/png")
 
 # Agent Templates System - Pre-configured archetypes with full daivis_agent configuration
 AGENT_TEMPLATES = {
