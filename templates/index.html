@@ -950,8 +950,17 @@
             const provider = document.getElementById('provider-select').value;
             const modelSelect = document.getElementById('model-select');
             modelSelect.innerHTML = '';
-            
             const models = {{ available_models|tojson }};
+            if (!provider || !models[provider]) {
+                // No provider selected or provider not recognised; disable the dropdown
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Select provider first';
+                modelSelect.appendChild(opt);
+                modelSelect.disabled = true;
+                return;
+            }
+            modelSelect.disabled = false;
             models[provider].forEach(model => {
                 const option = document.createElement('option');
                 option.value = model;
@@ -1986,25 +1995,44 @@
         function refreshProviderOptions() {
             const providerSelect = document.getElementById('provider-select');
             if (!providerSelect) return;
-            const models = {{ available_models|tojson }}; // Jinja placeholder remains intact outside JS runtime
-            providerSelect.innerHTML = '';
-            Object.keys(models).forEach(p => {
+
+            // All provider → model mappings injected by the backend
+            const models = {{ available_models|tojson }};
+
+            // Helper – does a stored key exist for a given provider?
+            const hasKey = (p) => {
                 const keyId = providerKeyMap[p.toLowerCase()];
-                const keyValue = document.getElementById(keyId)?.value.trim() || localStorage.getItem(keyId) || '';
-                if (!keyValue) return; // skip provider without key
+                if (!keyId) return false;
+                const v = document.getElementById(keyId)?.value.trim() || localStorage.getItem(keyId) || '';
+                return !!v;
+            };
+
+            // Determine which providers we should display.  If **any** provider has a
+            // key, we only show the keyed-in providers.  Otherwise we show everything
+            // so the user can still explore the UI before adding keys.
+            const keyedProviders = Object.keys(models).filter(hasKey);
+            const toDisplay = keyedProviders.length > 0 ? keyedProviders : Object.keys(models);
+
+            // Repopulate <select>
+            providerSelect.innerHTML = '';
+            toDisplay.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p;
-                opt.textContent = p.charAt(0).toUpperCase()+p.slice(1);
+                opt.textContent = p.charAt(0).toUpperCase() + p.slice(1);
                 providerSelect.appendChild(opt);
             });
-            // If none available, disable form submit
+
+            // Disable / enable the create-agent button accordingly
             const createBtn = document.querySelector('#agent-config-form button[type="submit"]');
             if (providerSelect.options.length === 0) {
-                providerSelect.innerHTML = '<option value="">Add API keys first</option>';
+                providerSelect.innerHTML = '<option value="">No providers available</option>';
                 createBtn.disabled = true;
             } else {
                 createBtn.disabled = false;
             }
+
+            // Ensure the model dropdown reflects the newly-selected provider list
+            updateModelsList();
         }
 
         // Persist keys and refresh providers when user types keys (dashboard inputs)

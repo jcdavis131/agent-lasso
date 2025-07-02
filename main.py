@@ -30,7 +30,7 @@ from database import (
     get_benchmarks_for_agent,
     get_leaderboard,
 )
-from config import AVAILABLE_MODELS, DEFAULT_MODEL_PROVIDER, GRAPHRAG_CONFIG
+from config import AVAILABLE_MODELS, DEFAULT_MODEL_PROVIDER, GRAPHRAG_CONFIG, MODEL_CONFIGS
 from tools import get_tools as get_all_tools
 from daivis_agent import DaivisAgent
 import json
@@ -989,6 +989,74 @@ async def benchmark_leaderboard(limit: int = 10):
     except Exception as e:
         logger.error(f"Error fetching leaderboard: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch leaderboard")
+
+# ---------------------------------------------------------------------------
+# Bootstrap default agents
+# ---------------------------------------------------------------------------
+
+def _bootstrap_default_agents():
+    """Create a handful of default agents so first-time users can test the UI
+    immediately.  We only run this once (when the DB has no agents).
+
+    Preference order for providers follows whichever API key the runtime has
+    available.  If none are detected we fall back to the configured
+    DEFAULT_MODEL_PROVIDER.
+    """
+    try:
+        existing = get_agent_configs()
+        if existing:
+            return  # Agents already exist – nothing to do
+
+        # Map provider → env var that stores its key
+        key_env_map = {
+            "openai": "OPENAI_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+            "mistral": "MISTRAL_API_KEY",
+            "groq": "GROQ_API_KEY",
+        }
+
+        # Pick the first provider that has a key present in env vars
+        selected_provider = None
+        for provider, env_var in key_env_map.items():
+            if os.getenv(env_var):
+                selected_provider = provider
+                break
+
+        # If no keys found, fall back to default provider
+        if not selected_provider:
+            selected_provider = DEFAULT_MODEL_PROVIDER
+
+        # Choose a sensible default model for that provider
+        default_model = MODEL_CONFIGS.get(selected_provider, {}).get("model") or AVAILABLE_MODELS[selected_provider][0]
+
+        # Create agents from a subset of templates
+        DEFAULT_TEMPLATE_KEYS = [
+            "research_assistant",
+            "data_scientist",
+            "creative_writer",
+        ]
+
+        for key in DEFAULT_TEMPLATE_KEYS:
+            template = AGENT_TEMPLATES.get(key)
+            if not template:
+                continue
+
+            tools_json = json.dumps(template.get("tools", []))
+            add_agent_config(
+                name=template["name"],
+                description=template["description"],
+                provider=selected_provider,
+                model=default_model,
+                tools_json=tools_json,
+                system_prompt=template.get("system_prompt", ""),
+            )
+        logger.info("Bootstrapped default agents using provider '%s'", selected_provider)
+    except Exception as exc:
+        logger.error("Failed to bootstrap default agents: %s", exc)
+
+
+# Run bootstrap step immediately after DB init
+_bootstrap_default_agents()
 
 # Include router
 app.include_router(router)
