@@ -6,7 +6,7 @@
     <title>Silver Lasso | Configure, Play, Benchmark.</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/static/logo-hero.png">
+    <link rel="icon" type="image/png" href="/static/logo-hero-new.png">
     <style>
         /* Theme variables */
         :root {
@@ -460,6 +460,31 @@
         .light .logo-icon {
             filter: invert(0) brightness(1);
         }
+
+        /* ------------------------------ */
+        /* Pulsing Silver Rope Animation  */
+        /* ------------------------------ */
+        .logo-container {
+            position: relative;
+            display: inline-block;
+        }
+        .logo-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        /* Second image fades in/out to create pulse effect */
+        .logo-pulse {
+            opacity: 0;
+            animation: pulseLogo 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseLogo {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
     </style>
   </head>
   <body>
@@ -470,7 +495,12 @@
             <div class="text-center mb-8">
                 
                 <center>
-                    <img src="/static/logo-hero.png" alt="Silver Lasso" class="brand-logo logo-icon" style="width: 8rem; height: 8rem;"></center>
+                    <div class="logo-container brand-logo" style="width: 8rem; height: 8rem;">
+                        <!-- Base logo -->
+                        <img src="/static/logo-hero-new.png" alt="Silver Lasso" class="logo-base logo-icon">
+                        <!-- Highlighted logo for pulsing effect -->
+                        <img src="/static/logo-hero-new2.png" alt="Silver Lasso pulsing" class="logo-pulse logo-icon">
+                    </div>
                 </center>
                 <h1 class="hero-title">Silver Lasso</h1>
                 <p class="hero-subtitle">Configure. Play. Benchmark.</p>
@@ -2137,7 +2167,10 @@
 
     <!-- Site Footer -->
     <footer class="site-footer flex justify-end items-center py-4 px-12">
-        <img src="/static/logo-hero.png" alt="Silver Lasso" class="brand-logo logo-icon" style="width: 4rem; height: 4rem;">
+        <div class="logo-container brand-logo" style="width: 4rem; height: 4rem;">
+            <img src="/static/logo-hero-new.png" alt="Silver Lasso" class="logo-base logo-icon">
+            <img src="/static/logo-hero-new2.png" alt="Silver Lasso pulsing" class="logo-pulse logo-icon">
+        </div>
     </footer>
 </body>
 </html> 

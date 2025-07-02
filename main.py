@@ -160,7 +160,7 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return FileResponse(os.path.join(static_path, "logo-hero.png"), media_type="image/png")
+    return FileResponse(os.path.join(static_path, "logo-hero-new.png"), media_type="image/png")
 
 # Agent Templates System - Pre-configured archetypes with full daivis_agent configuration
 AGENT_TEMPLATES = {
