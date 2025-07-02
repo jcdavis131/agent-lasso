@@ -12,7 +12,6 @@ pydantic>=2.0.0
 # fasthtml>=0.6.9  # Commented out: not available on PyPI
 monsterui>=0.0.8
 fastlite>=0.0.6
-streamlit>=1.28.0
 uvicorn>=0.32.0
 python-multipart>=0.0.6
 fastapi>=0.109.0
