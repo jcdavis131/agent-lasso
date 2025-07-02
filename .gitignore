@@ -1,0 +1,43 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# VS Code / IDE settings
+.vscode/
+.idea/
+*.swp
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Test & coverage artifacts
+htmlcov/
+.coverage*
+*.pytest_cache/
+
+# Local databases and logs
+agent_log.db*
+*.sqlite3
+*.db
+*.log
+
+# Secrets & environment files
+.env
+.secrets*
+secrets.txt
+.sesskey
+
+# Vercel build output
+.vercel/
+
+# Large data files (uncomment if you move to LFS)
+skills_data_clean.json
+
+# Node modules (if ever added for tooling)
+node_modules/ 

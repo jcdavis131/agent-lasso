@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Lasso | Configure, Play, Benchmark.</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/static/logo-hero.png">
+    <style>
+        /* Theme variables */
+        :root {
+            /* Starry desert night sky palette */
+            --header-gradient: linear-gradient(120deg, #0f172a 0%, #1e3a8a 40%, #312e81 90%);
+            --body-gradient: linear-gradient(135deg, #000814 0%, #001d3d 100%);
+        }
+        :root.light {
+            --header-gradient: linear-gradient(120deg, #ffffff 0%, #e2e8f0 80%);
+            --body-gradient: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+        }
+        body {
+            background: var(--body-gradient);
+            min-height: 100vh;
+            color: #e2e8f0;
+            position: relative;
+            z-index: 1;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image: radial-gradient(#ffffff22 1px, transparent 1px), radial-gradient(#ffffff33 1px, transparent 1px);
+            background-size: 3px 3px, 6px 6px;
+            animation: starShift 180s linear infinite;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
+        .chat-message {
+            max-width: 80%;
+            margin: 0.5rem 0;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+        }
+        .chat-message.user {
+            background: #3b82f6;
+            margin-left: auto;
+            text-align: right;
+        }
+        .chat-message.assistant {
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: auto;
+        }
+        .tool-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .tool-card.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .system-card {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .system-prompt-collapsed {
+            max-height: 60px;
+            overflow: hidden;
+            position: relative;
+        }
+        .system-prompt-expanded {
+            max-height: none;
+            overflow: visible;
+        }
+        .expand-btn {
+            cursor: pointer;
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+        .expand-btn:hover {
+            opacity: 0.8;
+        }
+        .progress-indicator {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            animation: pulse 2s infinite;
+        }
+        .progress-indicator.thinking {
+            border-color: rgba(168, 85, 247, 0.3);
+            background: rgba(168, 85, 247, 0.1);
+        }
+        .progress-indicator.tool-use {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .progress-indicator.status {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .progress-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .message-typing {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            max-width: 80%;
+            margin-right: auto;
+        }
+        .header-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            /* Theme-driven gradient with drifting stars */
+            background: radial-gradient(#ffffff22 1px, transparent 1px), var(--header-gradient);
+            background-size: 3px 3px, 400% 400%;
+            background-position: 0 0, 0 0;
+            animation: starShift 180s linear infinite, gradientShift 15s ease infinite;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateY(0);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        /* Decorative glowing blobs */
+        .header-drawer::before, .header-drawer::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .header-drawer::before {
+            top: -150px;
+            left: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.35), transparent 70%);
+            animation: floatBlob 18s ease-in-out infinite alternate;
+        }
+        .header-drawer::after {
+            bottom: -180px;
+            right: -180px;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle at center, rgba(96, 165, 250, 0.3), transparent 70%);
+            animation: floatBlob 22s ease-in-out infinite alternate;
+        }
+        .header-drawer.collapsed {
+            transform: translateY(-100%);
+        }
+        .header-drawer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+        .header-drawer-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1001;
+            background: rgba(37, 99, 235, 0.9); /* starlight blue */
+            border: none;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .header-drawer-toggle:hover {
+            background: rgba(37, 99, 235, 1);
+            transform: scale(1.1);
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .hero-title {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .hero-subtitle {
+            text-align: center;
+            font-size: 1.25rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+        .main-content {
+            margin-top: 0;
+            transition: margin-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content.drawer-open {
+            margin-top: 420px;
+        }
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            .header-drawer-content {
+                padding: 1rem;
+            }
+            .main-content.drawer-open {
+                margin-top: 480px;
+            }
+        }
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.6)); }
+            50% { filter: drop-shadow(0 0 14px rgba(79, 70, 229, 1)); }
+        }
+        #logo-icon {
+            filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.6));
+            animation: glow 3s ease-in-out infinite;
+        }
+        /* Gradient animation */
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Subtle blob float */
+        @keyframes floatBlob {
+            0% { transform: translateY(0) translateX(0) scale(1); }
+            50% { transform: translateY(-30px) translateX(50px) scale(1.05); }
+            100% { transform: translateY(0) translateX(0) scale(1); }
+        }
+
+        /* Call-to-action buttons */
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .cta-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 4.5rem; /* slightly below the drawer toggle */
+            right: 1.25rem;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #ffffff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            font-size: 0.9rem;
+        }
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes starShift {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: -1000px 500px, 500px -1000px; }
+        }
+        /* Ensure logo appears white on dark backgrounds */
+        .logo-icon {
+            filter: invert(1) brightness(2);
+        }
+        /* Nav bar enlargement */
+        .nav-item {
+            padding-top: 1.25rem !important; /* py-5 */
+            padding-bottom: 1.25rem !important;
+            padding-left: 2.5rem !important; /* px-10 */
+            padding-right: 2.5rem !important;
+            font-size: 1rem; /* slightly larger text */
+        }
+        .nav-item i {
+            font-size: 1.5rem !important; /* 2x icon size */
+        }
+        .nav-item img {
+            width: 2rem !important;
+            height: 2rem !important;
+        }
+        /* Fill width */
+        .nav-bar {
+            width: 100%;
+            justify-content: space-around;
+        }
+        /* Larger icons */
+        .nav-item i, .nav-item img {
+            font-size: 2rem !important;
+            width: 2rem !important;
+            height: 2rem !important;
+        }
+        /* Mobile responsiveness */
+        @media (max-width: 640px) {
+            .nav-bar {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+            .nav-item {
+                flex: 1 1 48%;
+                padding: 0.75rem 1rem !important;
+                font-size: 0.875rem;
+            }
+            .nav-item i, .nav-item img {
+                font-size: 1.25rem !important;
+                width: 1.25rem !important;
+                height: 1.25rem !important;
+            }
+        }
+        .brand-logo {
+            width: 3rem;
+            height: 3rem;
+        }
+        .site-footer {
+            background: transparent;
+        }
+    </style>
+  </head>
+  <body>
+    <!-- Header Drawer -->
+    <div id="header-drawer" class="header-drawer">
+        <div class="header-drawer-content">
+            <!-- Hero Section -->
+            <div class="text-center mb-8">
+                <img src="/static/logo-hero.png" alt="Agent Lasso logo" id="logo-icon" class="mx-auto w-24 mb-4">
+                <h1 class="hero-title">Agent Lasso</h1>
+                <p class="hero-subtitle">Configure, Play, Benchmark.</p>
+                <p class="text-center text-gray-400 mt-2">Agent Lasso lets you build AI agents, try them in a live playground, and benchmark performance with built-in tests.</p>
+                <!-- CTA Buttons -->
+                <div class="flex justify-center mt-6 gap-4">
+                    <button onclick="showSection('configure')" class="cta-btn cta-primary">
+                        <i class="fas fa-rocket mr-2"></i>Get Started
+                    </button>
+                    <button onclick="showSection('vibe-check')" class="cta-btn cta-secondary">
+                        Live Demo
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="feature-card">
+                    <div class="flex items-center mb-3">
+                        <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-hat-cowboy text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Configure</h3>
+                            <p class="text-sm text-gray-400">Template-based setup</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-300 text-sm">Choose from pre-built agent templates and customize with your preferred models and tools.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="flex items-center mb-3">
+                        <div class="w-12 h-12 bg-purple-700 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-star text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Chat & Test</h3>
+                            <p class="text-sm text-gray-400">Real-time interaction</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-300 text-sm">Test your agents with live chat, see thinking processes, and watch tool usage in real-time.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="flex items-center mb-3">
+                        <div class="w-12 h-12 bg-teal-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-bullseye text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Benchmark</h3>
+                            <p class="text-sm text-gray-400">Performance metrics</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-300 text-sm">Measure response times, accuracy, and overall performance with comprehensive testing.</p>
+                </div>
+            </div>
+            
+            <!-- Quick Start -->
+            <div class="text-center">
+                <div class="flex justify-center items-center space-x-4 text-sm text-gray-400">
+                    <span class="flex items-center">
+                        <i class="fas fa-magic mr-2 text-blue-400"></i>
+                        9 Agent Templates
+                    </span>
+                    <span class="flex items-center">
+                        <i class="fas fa-tools mr-2 text-green-400"></i>
+                        9+ Powerful Tools
+                    </span>
+                    <span class="flex items-center">
+                        <i class="fas fa-brain mr-2 text-purple-400"></i>
+                        Multiple LLM Providers
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header Drawer Toggle -->
+    <button id="header-drawer-toggle" class="header-drawer-toggle" onclick="toggleHeaderDrawer()">
+        <i id="drawer-toggle-icon" class="fas fa-chevron-up"></i>
+    </button>
+    
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">
+        <i id="theme-toggle-icon" class="fas fa-sun"></i>
+    </button>
+    
+    <div id="main-content" class="main-content drawer-open">
+    <div class="container mx-auto p-6">
+
+        <!-- Navigation -->
+        <nav class="flex justify-center mb-8">
+            <div class="glass-card p-1 flex space-x-1 nav-bar">
+                <button class="nav-item px-6 py-3 rounded-lg transition-all active" onclick="showSection('dashboard')" id="nav-dashboard">
+                    <i class="fas fa-newspaper mr-2"></i>Dashboard
+                </button>
+                <button class="nav-item px-6 py-3 rounded-lg transition-all flex items-center" onclick="showSection('configure')" id="nav-configure">
+                    <i class="fas fa-cog mr-2"></i>Configure
+                </button>
+                <button class="nav-item px-6 py-3 rounded-lg transition-all" onclick="showSection('vibe-check')">
+                    <i class="fas fa-star mr-2"></i>Vibe Check
+                </button>
+                <button class="nav-item px-6 py-3 rounded-lg transition-all" onclick="showSection('benchmark')">
+                    <i class="fas fa-bullseye mr-2"></i>Benchmark
+                </button>
+                <button class="nav-item px-6 py-3 rounded-lg transition-all" onclick="showSection('agents')">
+                    <i class="fas fa-hat-cowboy mr-2"></i> Agents
+                </button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section active">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Live Activity Feed</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Recent Benchmarks -->
+                    <div class="glass-card p-6">
+                        <h3 class="text-xl font-semibold mb-4">Recent Benchmark Runs</h3>
+                        <div id="recent-benchmarks-main">
+                            <div class="text-center text-gray-400 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading…</div>
+                        </div>
+                    </div>
+                    <!-- Leaderboard -->
+                    <div class="glass-card p-6">
+                        <h3 class="text-xl font-semibold mb-4">Top Agents</h3>
+                        <div id="leaderboard-main">
+                            <div class="text-center text-gray-400 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading…</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Agents -->
+                <div class="mt-10">
+                    <h3 class="text-xl font-semibold mb-4">My Agents</h3>
+                    <div id="dashboard-agents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="text-center text-gray-400 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading…</div>
+                    </div>
+                </div>
+
+                <!-- API Keys Card -->
+                <div class="mt-10">
+                    <h3 class="text-xl font-semibold mb-4">API Keys</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                        <div class="text-sm text-gray-400 mb-4">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Enter your personal API keys for LLM providers. These are required to use the respective models.
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-brain mr-2 text-green-400"></i>OpenAI API Key</label>
+                                <input type="password" id="openai-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="sk-...">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-robot mr-2 text-orange-400"></i>Anthropic API Key</label>
+                                <input type="password" id="anthropic-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="sk-ant-...">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-wind mr-2 text-red-400"></i>Mistral API Key</label>
+                                <input type="password" id="mistral-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="...">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-bolt mr-2 text-yellow-400"></i>Groq API Key</label>
+                                <input type="password" id="groq-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="gsk_...">
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-gray-500">
+                            <i class="fas fa-shield-alt mr-1"></i>API keys are encrypted and stored securely. They're only used for your agent requests.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configure Section -->
+        <div id="configure" class="section">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Agent Configuration Builder</h2>
+                
+                <!-- Template Selection -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4">1. Choose a Template</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {% for key, template in agent_templates.items() %}
+                        <div class="tool-card glass-card p-4 cursor-pointer" onclick="selectTemplate('{{ key }}')">
+                            <div class="flex items-center mb-3">
+                                <span class="text-2xl mr-3">{{ template.emoji }}</span>
+                                <h4 class="text-lg font-semibold">{{ template.name }}</h4>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">{{ template.description }}</p>
+                            <div class="flex flex-wrap gap-1">
+                                {% for tool in template.tools[:3] %}
+                                <span class="bg-blue-900 px-2 py-1 rounded text-xs">{{ tool }}</span>
+                                {% endfor %}
+                                {% if template.tools|length > 3 %}
+                                <span class="text-gray-400 text-xs">+{{ template.tools|length - 3 }} more</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Configuration Form -->
+                <div class="glass-card p-6 mb-8">
+                    <h3 class="text-2xl font-semibold mb-4">2. Configure Your Agent</h3>
+                    <form id="agent-config-form" class="space-y-6">
+                        <input type="hidden" id="selected-template" name="template_key">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block mb-2 font-semibold">Agent Name</label>
+                                <input type="text" id="agent-name" name="custom_name" 
+                                       class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                       placeholder="Enter custom name (optional)">
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-2 font-semibold">Description</label>
+                                <input type="text" id="agent-description" name="custom_description"
+                                       class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                       placeholder="Enter custom description (optional)">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block mb-2 font-semibold">Model Provider</label>
+                                <select id="provider-select" name="provider" 
+                                        class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                    {% for provider in available_models.keys() %}
+                                    <option value="{{ provider }}" {% if provider == default_provider %}selected{% endif %}>
+                                        {{ provider|title }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-2 font-semibold">Model</label>
+                                <select id="model-select" name="model"
+                                        class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                    {% for model in available_models[default_provider] %}
+                                    <option value="{{ model }}">{{ model }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block mb-2 font-semibold">System Prompt</label>
+                            <textarea id="system-prompt" name="custom_system_prompt" rows="4"
+                                      class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                      placeholder="Enter custom system prompt (optional)"></textarea>
+                        </div>
+
+                        <!-- Tool Selection -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="block font-semibold">Tool Configuration</label>
+                                <div class="flex items-center space-x-4">
+                                    <button type="button" onclick="selectAllTools()" class="text-blue-400 hover:text-blue-300 text-sm">
+                                        <i class="fas fa-check-double mr-1"></i>Select All
+                                    </button>
+                                    <button type="button" onclick="deselectAllTools()" class="text-gray-400 hover:text-gray-300 text-sm">
+                                        <i class="fas fa-times mr-1"></i>Deselect All
+                                    </button>
+                                    <button type="button" onclick="useTemplateTools()" class="text-green-400 hover:text-green-300 text-sm">
+                                        <i class="fas fa-magic mr-1"></i>Use Template Tools
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                                <div class="text-sm text-gray-400 mb-4">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Select which tools your agent will have access to. The current_time tool is always included for temporal grounding.
+                                </div>
+                                
+                                <div id="tools-container" class="space-y-4">
+                                    <div class="text-center text-gray-400 py-8">
+                                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                        <div>Loading available tools...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Create Agent
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vibe Check Section -->
+        <div id="vibe-check" class="section">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Chat Playground</h2>
+                
+                <!-- Agent Selector -->
+                <div class="glass-card p-4 mb-6">
+                    <div class="flex items-center space-x-4">
+                        <label class="font-semibold">Select Agent:</label>
+                        <select id="chat-agent-select" class="bg-gray-800 rounded-lg p-2 border border-gray-600 focus:border-blue-500 focus:outline-none" onchange="onAgentSelected()">
+                            <option value="">Choose an agent...</option>
+                        </select>
+                        <button onclick="loadChatAgents()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-refresh mr-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Agent System Card -->
+                <div id="agent-system-card" class="system-card p-6 mb-6" style="display: none;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-robot mr-2 text-blue-400"></i>
+                            Agent System Card
+                        </h3>
+                        <button onclick="toggleSystemCard()" class="text-gray-400 hover:text-white">
+                            <i id="card-toggle-icon" class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="agent-card-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- Agent Info -->
+                            <div>
+                                <h4 class="font-semibold mb-3 text-blue-300">Agent Information</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <span class="text-gray-400">Name:</span>
+                                        <span id="agent-card-name" class="ml-2 font-medium">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">Description:</span>
+                                        <div id="agent-card-description" class="text-sm text-gray-300 mt-1">-</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">Created:</span>
+                                        <span id="agent-card-created" class="ml-2 text-sm">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Model Info -->
+                            <div>
+                                <h4 class="font-semibold mb-3 text-blue-300">Model Configuration</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <span class="text-gray-400">Provider:</span>
+                                        <span id="agent-card-provider" class="ml-2 font-medium">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">Model:</span>
+                                        <span id="agent-card-model" class="ml-2 font-medium">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tools -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-3 text-blue-300">Available Tools</h4>
+                            <div id="agent-card-tools" class="flex flex-wrap gap-2">
+                                <!-- Tools will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <!-- System Prompt -->
+                        <div>
+                            <h4 class="font-semibold mb-3 text-blue-300">System Prompt</h4>
+                            <div class="bg-gray-900 rounded-lg p-4">
+                                <div id="agent-card-prompt" class="text-sm text-gray-300 system-prompt-collapsed">
+                                    <!-- System prompt will be populated here -->
+                                </div>
+                                <span id="prompt-expand-btn" class="expand-btn text-xs mt-2 inline-block" onclick="toggleSystemPrompt()" style="display: none;">
+                                    Show more
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Interface -->
+                <div class="glass-card p-6">
+                    <div id="chat-messages" class="h-96 overflow-y-auto mb-4 p-4 bg-gray-900 rounded-lg">
+                        <div class="text-center text-gray-400 py-8">
+                            Select an agent to start chatting
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <input type="text" id="chat-input" placeholder="Type your message..."
+                               class="flex-1 bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                               onkeypress="handleChatKeyPress(event)">
+                        <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benchmark Section -->
+        <div id="benchmark" class="section">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Agent Benchmarking</h2>
+                
+                <!-- Test Controls -->
+                <div class="glass-card p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block mb-2 font-semibold">Select Agent:</label>
+                            <select id="benchmark-agent-select" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                <option value="">Choose an agent...</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block mb-2 font-semibold">Test Type:</label>
+                            <select id="test-type-select" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                <option value="response_time">Response Time</option>
+                                <option value="accuracy">Accuracy Test</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-end">
+                            <button onclick="runBenchmark()" class="w-full bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg transition-colors">
+                                <i class="fas fa-play mr-2"></i>Run Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Current Test -->
+                    <div class="glass-card p-6">
+                        <h3 class="text-xl font-semibold mb-4">Current Test</h3>
+                        <div id="current-test-results">
+                            <div class="text-center text-gray-400 py-8">
+                                No test running
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Test History -->
+                    <div class="glass-card p-6">
+                        <h3 class="text-xl font-semibold mb-4">Test History</h3>
+                        <div id="test-history">
+                            <div class="text-center text-gray-400 py-8">
+                                No test history
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Section -->
+        <div id="agents" class="section">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Agent Management</h2>
+                
+                <!-- Agents Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="agents-grid">
+                    <!-- Agents will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 hidden z-50">
+        <div class="glass-card p-4 text-white flex items-center">
+            <span id="toast-message"></span>
+            <button onclick="closeToast()" class="ml-4 text-gray-400 hover:text-white">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentChatAgent = null;
+        let currentThreadId = null;
+        let selectedTemplate = null;
+        let availableTools = null;
+        let availableToolCategories = null;
+        let agentsCache = null; // cached list of agents for quick lookups
+        const providerKeyMap = { openai: 'openai-api-key', anthropic: 'anthropic-api-key', mistral: 'mistral-api-key', groq: 'groq-api-key' };
+
+        // Navigation handled by new showSection function below
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.add(type === 'success' ? 'bg-green-800' : 'bg-red-800');
+            setTimeout(() => closeToast(), 5000);
+        }
+
+        function closeToast() {
+            document.getElementById('toast').classList.add('hidden');
+        }
+
+        // Configure Section
+        function selectTemplate(templateKey) {
+            selectedTemplate = templateKey;
+            document.getElementById('selected-template').value = templateKey;
+            
+            // Remove previous selections
+            document.querySelectorAll('.tool-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            event.currentTarget.classList.add('selected');
+            
+            const templates = {{ agent_templates|tojson }};
+            const template = templates[templateKey];
+            
+            // Pre-fill form with template data
+            document.getElementById('agent-name').placeholder = template.name;
+            document.getElementById('agent-description').placeholder = template.description;
+            document.getElementById('system-prompt').placeholder = template.system_prompt;
+            
+            // Load tools if not already loaded
+            if (!availableTools) {
+                loadAvailableTools();
+            }
+        }
+
+        function updateModelsList() {
+            const provider = document.getElementById('provider-select').value;
+            const modelSelect = document.getElementById('model-select');
+            modelSelect.innerHTML = '';
+            
+            const models = {{ available_models|tojson }};
+            models[provider].forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelect.appendChild(option);
+            });
+        }
+
+        // Tool Management Functions
+        async function loadAvailableTools() {
+            try {
+                const response = await fetch('/api/tools');
+                const data = await response.json();
+                
+                availableTools = data.tools;
+                availableToolCategories = data.categories;
+                
+                displayToolsInterface();
+            } catch (error) {
+                document.getElementById('tools-container').innerHTML = 
+                    '<div class="text-center text-red-400 py-4">Error loading tools: ' + error.message + '</div>';
+            }
+        }
+
+        function displayToolsInterface() {
+            if (!availableTools || !availableToolCategories) {
+                return;
+            }
+            
+            const container = document.getElementById('tools-container');
+            container.innerHTML = '';
+            
+            Object.keys(availableToolCategories).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'mb-4';
+                
+                const categoryHeader = document.createElement('h4');
+                categoryHeader.className = 'font-semibold text-blue-300 mb-2';
+                categoryHeader.innerHTML = `<i class="fas fa-folder mr-2"></i>${category}`;
+                categoryDiv.appendChild(categoryHeader);
+                
+                const toolsGrid = document.createElement('div');
+                toolsGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
+                
+                availableToolCategories[category].forEach(tool => {
+                    const toolCard = document.createElement('div');
+                    toolCard.className = 'bg-gray-700 rounded-lg p-3 border border-gray-600 hover:border-blue-500 transition-colors cursor-pointer';
+                    
+                    const isRequired = tool.required;
+                    const isSelected = isRequired; // Required tools are selected by default
+                    
+                    if (isRequired) {
+                        toolCard.classList.add('border-green-500', 'bg-green-900', 'bg-opacity-20');
+                    }
+                    
+                    toolCard.innerHTML = `
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 mt-1">
+                                <input type="checkbox" 
+                                       class="tool-checkbox w-4 h-4 text-blue-600 rounded focus:ring-blue-500" 
+                                       data-tool="${tool.name}"
+                                       ${isSelected ? 'checked' : ''}
+                                       ${isRequired ? 'disabled' : ''}
+                                       onchange="updateToolSelection('${tool.name}', this.checked)">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center mb-1">
+                                    <i class="${tool.icon} mr-2 text-gray-400"></i>
+                                    <span class="font-medium">${tool.display_name}</span>
+                                    ${isRequired ? '<span class="ml-2 text-xs bg-green-600 px-2 py-1 rounded-full">Required</span>' : ''}
+                                </div>
+                                <p class="text-sm text-gray-400">${tool.description}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    if (!isRequired) {
+                        toolCard.onclick = () => {
+                            const checkbox = toolCard.querySelector('.tool-checkbox');
+                            checkbox.checked = !checkbox.checked;
+                            updateToolSelection(tool.name, checkbox.checked);
+                        };
+                    }
+                    
+                    toolsGrid.appendChild(toolCard);
+                });
+                
+                categoryDiv.appendChild(toolsGrid);
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        function updateToolSelection(toolName, isSelected) {
+            // Visual feedback
+            const checkbox = document.querySelector(`input[data-tool="${toolName}"]`);
+            const card = checkbox.closest('.bg-gray-700');
+            
+            if (isSelected) {
+                card.classList.add('border-blue-500', 'bg-blue-900', 'bg-opacity-20');
+            } else {
+                card.classList.remove('border-blue-500', 'bg-blue-900', 'bg-opacity-20');
+            }
+        }
+
+        function selectAllTools() {
+            document.querySelectorAll('.tool-checkbox:not([disabled])').forEach(checkbox => {
+                checkbox.checked = true;
+                updateToolSelection(checkbox.dataset.tool, true);
+            });
+        }
+
+        function deselectAllTools() {
+            document.querySelectorAll('.tool-checkbox:not([disabled])').forEach(checkbox => {
+                checkbox.checked = false;
+                updateToolSelection(checkbox.dataset.tool, false);
+            });
+        }
+
+        function useTemplateTools() {
+            if (!selectedTemplate) {
+                showToast('Please select a template first', 'error');
+                return;
+            }
+            
+            const templates = {{ agent_templates|tojson }};
+            const template = templates[selectedTemplate];
+            const templateTools = template.tools || [];
+            
+            // First deselect all non-required tools
+            deselectAllTools();
+            
+            // Then select template tools
+            templateTools.forEach(toolName => {
+                const checkbox = document.querySelector(`input[data-tool="${toolName}"]`);
+                if (checkbox && !checkbox.disabled) {
+                    checkbox.checked = true;
+                    updateToolSelection(toolName, true);
+                }
+            });
+            
+            showToast(`Applied ${templateTools.length} tools from ${template.name} template`);
+        }
+
+        function getSelectedTools() {
+            const selectedTools = [];
+            document.querySelectorAll('.tool-checkbox:checked').forEach(checkbox => {
+                selectedTools.push(checkbox.dataset.tool);
+            });
+            return selectedTools;
+        }
+
+        // Agent creation form
+        document.getElementById('agent-config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!selectedTemplate) {
+                showToast('Please select a template first', 'error');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            const selectedTools = getSelectedTools();
+            
+            // Collect API keys
+            const apiKeys = {};
+            const openaiKey = document.getElementById('openai-api-key').value.trim();
+            const anthropicKey = document.getElementById('anthropic-api-key').value.trim();
+            const mistralKey = document.getElementById('mistral-api-key').value.trim();
+            const groqKey = document.getElementById('groq-api-key').value.trim();
+            
+            if (openaiKey) apiKeys.openai = openaiKey;
+            if (anthropicKey) apiKeys.anthropic = anthropicKey;
+            if (mistralKey) apiKeys.mistral = mistralKey;
+            if (groqKey) apiKeys.groq = groqKey;
+            
+            // Check if API key is provided for the selected provider
+            const provider = formData.get('provider').toLowerCase();
+            const hasApiKey = apiKeys[provider];
+            
+            if (!hasApiKey) {
+                showToast(`Please provide an API key for ${provider.charAt(0).toUpperCase() + provider.slice(1)} to use this provider`, 'error');
+                return;
+            }
+            
+            const data = {
+                template_key: formData.get('template_key'),
+                provider: formData.get('provider'),
+                model: formData.get('model'),
+                custom_name: formData.get('custom_name') || null,
+                custom_description: formData.get('custom_description') || null,
+                custom_system_prompt: formData.get('custom_system_prompt') || null,
+                custom_tools: selectedTools.length > 0 ? selectedTools : null,
+                api_keys: Object.keys(apiKeys).length > 0 ? apiKeys : null
+            };
+
+            try {
+                const response = await fetch('/api/create_agent_from_template', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Agent created successfully!');
+                    e.target.reset();
+                    selectedTemplate = null;
+                    document.querySelectorAll('.tool-card').forEach(card => {
+                        card.classList.remove('selected');
+                    });
+                } else {
+                    showToast(result.detail || 'Failed to create agent', 'error');
+                }
+            } catch (error) {
+                showToast('Error creating agent: ' + error.message, 'error');
+            }
+        });
+
+        // Chat functionality
+        async function loadChatAgents() {
+            try {
+                const response = await fetch('/api/agents');
+                const data = await response.json();
+                
+                const select = document.getElementById('chat-agent-select');
+                select.innerHTML = '<option value="">Choose an agent...</option>';
+                
+                data.agents.forEach(agent => {
+                    const option = document.createElement('option');
+                    option.value = agent.id;
+                    option.textContent = agent.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                showToast('Error loading agents: ' + error.message, 'error');
+            }
+        }
+
+        // Agent System Card functionality
+        async function onAgentSelected() {
+            const agentId = document.getElementById('chat-agent-select').value;
+            
+            if (!agentId) {
+                // Hide system card when no agent selected
+                document.getElementById('agent-system-card').style.display = 'none';
+                document.getElementById('chat-messages').innerHTML = 
+                    '<div class="text-center text-gray-400 py-8">Select an agent to start chatting</div>';
+                currentChatAgent = null;
+                return;
+            }
+            
+            try {
+                // Load agent details
+                const response = await fetch(`/api/agents/${agentId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load agent details');
+                }
+                
+                const agent = await response.json();
+                displayAgentSystemCard(agent);
+                
+                // Update chat interface
+                currentChatAgent = parseInt(agentId);
+                currentThreadId = null;
+                document.getElementById('chat-messages').innerHTML = 
+                    '<div class="text-center text-gray-400 py-8">Start a conversation with your agent</div>';
+                    
+            } catch (error) {
+                showToast('Error loading agent details: ' + error.message, 'error');
+            }
+        }
+
+        function displayAgentSystemCard(agent) {
+            // Show the system card
+            document.getElementById('agent-system-card').style.display = 'block';
+            
+            // Populate agent information
+            document.getElementById('agent-card-name').textContent = agent.name;
+            document.getElementById('agent-card-description').textContent = agent.description || 'No description provided';
+            document.getElementById('agent-card-created').textContent = formatDate(agent.created_at);
+            
+            // Populate model information
+            document.getElementById('agent-card-provider').textContent = agent.provider;
+            document.getElementById('agent-card-model').textContent = agent.model;
+            
+            // Populate tools
+            const toolsContainer = document.getElementById('agent-card-tools');
+            toolsContainer.innerHTML = '';
+            
+            if (agent.tools && agent.tools.length > 0) {
+                agent.tools.forEach(tool => {
+                    const toolBadge = document.createElement('span');
+                    toolBadge.className = 'bg-blue-900 px-3 py-1 rounded-full text-sm border border-blue-700';
+                    toolBadge.innerHTML = `<i class="fas fa-tool mr-1"></i>${tool}`;
+                    toolsContainer.appendChild(toolBadge);
+                });
+            } else {
+                toolsContainer.innerHTML = '<span class="text-gray-400 italic">No tools configured</span>';
+            }
+            
+            // Populate system prompt
+            const promptElement = document.getElementById('agent-card-prompt');
+            const expandBtn = document.getElementById('prompt-expand-btn');
+            
+            if (agent.system_prompt && agent.system_prompt.trim()) {
+                promptElement.textContent = agent.system_prompt;
+                
+                // Show expand button if prompt is long
+                if (agent.system_prompt.length > 200) {
+                    expandBtn.style.display = 'inline-block';
+                    promptElement.className = 'text-sm text-gray-300 system-prompt-collapsed';
+                } else {
+                    expandBtn.style.display = 'none';
+                    promptElement.className = 'text-sm text-gray-300';
+                }
+            } else {
+                promptElement.textContent = 'No system prompt configured';
+                promptElement.className = 'text-sm text-gray-400 italic';
+                expandBtn.style.display = 'none';
+            }
+        }
+
+        function toggleSystemCard() {
+            const content = document.getElementById('agent-card-content');
+            const icon = document.getElementById('card-toggle-icon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function toggleSystemPrompt() {
+            const promptElement = document.getElementById('agent-card-prompt');
+            const expandBtn = document.getElementById('prompt-expand-btn');
+            
+            if (promptElement.classList.contains('system-prompt-collapsed')) {
+                promptElement.classList.remove('system-prompt-collapsed');
+                promptElement.classList.add('system-prompt-expanded');
+                expandBtn.textContent = 'Show less';
+            } else {
+                promptElement.classList.remove('system-prompt-expanded');
+                promptElement.classList.add('system-prompt-collapsed');
+                expandBtn.textContent = 'Show more';
+            }
+        }
+
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString();
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        // Event listener removed - using onchange attribute instead
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            if (!currentChatAgent) {
+                showToast('Please select an agent first', 'error');
+                return;
+            }
+            
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Clear input and add user message
+            input.value = '';
+            addMessageToChat('user', message);
+            
+            // Disable input during processing
+            input.disabled = true;
+            const sendButton = input.parentElement.querySelector('button');
+            sendButton.disabled = true;
+            
+            let progressIndicator = null;
+            
+            try {
+                // Use fetch with streaming response
+                const response = await fetch('/api/chat/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        agent_id: parseInt(currentChatAgent),
+                        message: message,
+                        thread_id: currentThreadId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to start chat stream');
+                }
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                handleStreamMessage(data);
+                                
+                                // Update progress indicator
+                                if (data.type === 'status' || data.type === 'thinking' || data.type === 'tool_use') {
+                                    progressIndicator = updateProgressIndicator(progressIndicator, data.type, data.content);
+                                    if (data.thread_id) {
+                                        currentThreadId = data.thread_id;
+                                    }
+                                } else if (data.type === 'response') {
+                                    // Remove progress indicator and add final response
+                                    if (progressIndicator) {
+                                        progressIndicator.remove();
+                                        progressIndicator = null;
+                                    }
+                                    addMessageToChat('assistant', data.content);
+                                } else if (data.type === 'error') {
+                                    if (progressIndicator) {
+                                        progressIndicator.remove();
+                                        progressIndicator = null;
+                                    }
+                                    addMessageToChat('assistant', 'Error: ' + data.content);
+                                } else if (data.type === 'done') {
+                                    if (progressIndicator) {
+                                        progressIndicator.remove();
+                                        progressIndicator = null;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing stream data:', e);
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                if (progressIndicator) {
+                    progressIndicator.remove();
+                }
+                addMessageToChat('assistant', 'Error: ' + error.message);
+            } finally {
+                // Re-enable input
+                input.disabled = false;
+                sendButton.disabled = false;
+                input.focus();
+            }
+        }
+
+        function handleStreamMessage(data) {
+            // This function can be extended to handle specific message types
+            console.log('Stream message:', data);
+        }
+
+        function updateProgressIndicator(currentIndicator, type, content) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            // Remove existing indicator if present
+            if (currentIndicator) {
+                currentIndicator.remove();
+            }
+            
+            // Create new progress indicator
+            const indicator = document.createElement('div');
+            indicator.className = `progress-indicator ${type.replace('_', '-')}`;
+            
+            // Add appropriate icon based on type
+            let icon = '';
+            switch (type) {
+                case 'thinking':
+                    icon = '🤔';
+                    break;
+                case 'tool_use':
+                    icon = '🔧';
+                    break;
+                case 'status':
+                    icon = '⚡';
+                    break;
+                default:
+                    icon = '💭';
+            }
+            
+            indicator.innerHTML = `
+                <div class="progress-spinner"></div>
+                <span>${icon} ${content}</span>
+            `;
+            
+            messagesContainer.appendChild(indicator);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return indicator;
+        }
+
+        function addMessageToChat(role, content) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            // Clear placeholder if it exists
+            if (messagesContainer.innerHTML.includes('Start a conversation')) {
+                messagesContainer.innerHTML = '';
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+            messageDiv.textContent = content;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Benchmark functionality
+        async function loadBenchmarkAgents() {
+            try {
+                const response = await fetch('/api/agents');
+                const data = await response.json();
+                
+                const select = document.getElementById('benchmark-agent-select');
+                select.innerHTML = '<option value="">Choose an agent...</option>';
+                
+                data.agents.forEach(agent => {
+                    const option = document.createElement('option');
+                    option.value = agent.id;
+                    option.textContent = agent.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                showToast('Error loading agents: ' + error.message, 'error');
+            }
+
+            // Attach change listener once to load history when agent selection changes
+            const agentSelect = document.getElementById('benchmark-agent-select');
+            if (agentSelect && !agentSelect.dataset.listenerAttached) {
+                agentSelect.addEventListener('change', () => {
+                    const id = agentSelect.value;
+                    if (id) {
+                        loadBenchmarkHistory(id);
+                    } else {
+                        displayBenchmarkHistory([]);
+                    }
+                });
+                agentSelect.dataset.listenerAttached = 'true';
+            }
+        }
+
+        // Fetch and display test history for a given agent
+        async function loadBenchmarkHistory(agentId) {
+            try {
+                const res = await fetch(`/api/benchmark/history/${agentId}`);
+                const data = await res.json();
+                displayBenchmarkHistory(data.benchmarks || []);
+            } catch (err) {
+                console.error('Failed to load benchmark history', err);
+                displayBenchmarkHistory([]);
+            }
+        }
+
+        function displayBenchmarkHistory(history) {
+            const container = document.getElementById('test-history');
+            if (!container) return;
+
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 py-8">No test history</div>';
+                return;
+            }
+
+            container.innerHTML = history.map(item => {
+                const date = new Date(item.timestamp).toLocaleString();
+                let scoreDisplay = item.score;
+                if (item.test_type === 'accuracy') {
+                    scoreDisplay = `${(item.score * 100).toFixed(1)}%`;
+                } else if (item.test_type === 'response_time') {
+                    scoreDisplay = `${item.score.toFixed(2)}s`;
+                }
+                return `
+                    <div class="flex justify-between items-center py-2 border-b border-gray-700 text-sm">
+                        <span class="text-gray-300">${date}</span>
+                        <span class="text-gray-400">${item.test_type}</span>
+                        <span class="font-semibold">${scoreDisplay}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        async function runBenchmark() {
+            const agentId = document.getElementById('benchmark-agent-select').value;
+            const testType = document.getElementById('test-type-select').value;
+            
+            if (!agentId) {
+                showToast('Please select an agent first', 'error');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('current-test-results').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-4"></i>
+                    <div>Running ${testType} test...</div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/benchmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        agent_id: parseInt(agentId),
+                        test_type: testType
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayBenchmarkResult(result);
+                    showToast('Benchmark completed successfully!');
+
+                    // Refresh history list
+                    loadBenchmarkHistory(agentId);
+                } else {
+                    showToast(result.detail || 'Error running benchmark', 'error');
+                    document.getElementById('current-test-results').innerHTML = 
+                        '<div class="text-center text-red-400 py-8">Test failed</div>';
+                }
+            } catch (error) {
+                showToast('Error running benchmark: ' + error.message, 'error');
+                document.getElementById('current-test-results').innerHTML = 
+                    '<div class="text-center text-red-400 py-8">Test failed</div>';
+            }
+        }
+
+        function displayBenchmarkResult(result) {
+            const container = document.getElementById('current-test-results');
+            
+            if (result.test_type === 'response_time') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-400">${result.score.toFixed(2)}s</div>
+                            <div class="text-gray-400">Response Time</div>
+                        </div>
+                        <div class="bg-gray-800 p-3 rounded">
+                            <div class="text-sm text-gray-400">Test Message:</div>
+                            <div>${result.details.test_message}</div>
+                        </div>
+                        <div class="bg-gray-800 p-3 rounded">
+                            <div class="text-sm text-gray-400">Response:</div>
+                            <div>${result.details.response}</div>
+                        </div>
+                    </div>
+                `;
+            } else if (result.test_type === 'accuracy') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-400">${(result.score * 100).toFixed(1)}%</div>
+                            <div class="text-gray-400">Accuracy</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg">${result.details.correct_answers}/${result.details.total_questions} correct</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Agents management
+        async function loadAgents() {
+            try {
+                const response = await fetch('/api/agents');
+                const data = await response.json();
+                
+                const grid = document.getElementById('agents-grid');
+                grid.innerHTML = data.agents.map(agent => `
+                    <div class="glass-card p-6 hover:shadow-lg transition-all" data-agent-id="${agent.id}">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-semibold">${agent.name}</h3>
+                            <button onclick="deleteAgent(${agent.id})" class="text-red-400 hover:text-red-300">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <p class="text-gray-400 mb-4">${agent.description}</p>
+                        <div class="mb-4">
+                            <div class="text-sm text-gray-400">Provider: ${agent.provider}</div>
+                            <div class="text-sm text-gray-400">Model: ${agent.model}</div>
+                        </div>
+                        <div class="mb-4">
+                            <h4 class="font-semibold mb-2">Tools:</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${agent.tools.slice(0, 3).map(tool => 
+                                    `<span class="bg-blue-900 px-2 py-1 rounded text-sm">${tool}</span>`
+                                ).join('')}
+                                ${agent.tools.length > 3 ? `<span class="text-gray-400 text-sm">+${agent.tools.length - 3} more</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="chatWithAgent(${agent.id})" 
+                                    class="px-3 py-1 bg-green-600 rounded hover:bg-green-500 transition-colors">
+                                <i class="fas fa-comments mr-1"></i>Chat
+                            </button>
+                            <button onclick="benchmarkAgent(${agent.id})"
+                                    class="px-3 py-1 bg-purple-600 rounded hover:bg-purple-500 transition-colors">
+                                <i class="fas fa-bullseye mr-1"></i>Test
+                            </button>
+                        </div>
+                    </div>`).join('') || '<div class="col-span-3 text-center text-gray-400 py-8">No agents created yet</div>';
+            } catch (error) {
+                showToast('Error loading agents: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteAgent(id) {
+            if (!confirm('Are you sure you want to delete this agent?')) return;
+            
+            try {
+                const response = await fetch(`/api/agents/${id}`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    showToast('Agent deleted successfully');
+                    loadAgents();
+                } else {
+                    const data = await response.json();
+                    showToast(data.detail || 'Failed to delete agent', 'error');
+                }
+            } catch (error) {
+                showToast('Error deleting agent: ' + error.message, 'error');
+            }
+        }
+
+        function chatWithAgent(agentId) {
+            document.getElementById('chat-agent-select').value = agentId;
+            // Trigger the onchange event to load the system card
+            onAgentSelected();
+            showSection('vibe-check');
+        }
+
+        function benchmarkAgent(agentId) {
+            document.getElementById('benchmark-agent-select').value = agentId;
+            showSection('benchmark');
+        }
+
+        // Header Drawer functionality
+        function toggleHeaderDrawer() {
+            const drawer = document.getElementById('header-drawer');
+            const mainContent = document.getElementById('main-content');
+            const toggleIcon = document.getElementById('drawer-toggle-icon');
+            
+            const isCollapsed = drawer.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                // Open drawer (go to home)
+                drawer.classList.remove('collapsed');
+                mainContent.classList.add('drawer-open');
+                toggleIcon.className = 'fas fa-chevron-up';
+                
+                // Update navigation state
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Activate home button
+                event.target.classList.add('active');
+
+                // Refresh home feed when opening drawer
+                loadHomeFeed();
+            } else {
+                // Close drawer
+                drawer.classList.add('collapsed');
+                mainContent.classList.remove('drawer-open');
+                toggleIcon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        // Auto-close drawer when navigating to sections
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            // Auto-close drawer when navigating to any section
+            const drawer = document.getElementById('header-drawer');
+            const mainContent = document.getElementById('main-content');
+            const toggleIcon = document.getElementById('drawer-toggle-icon');
+            
+            drawer.classList.add('collapsed');
+            mainContent.classList.remove('drawer-open');
+            toggleIcon.className = 'fas fa-chevron-down';
+            
+            // Load section-specific data
+            if (sectionId === 'dashboard') {
+                loadHomeFeed();
+            } else if (sectionId === 'agents') {
+                loadAgents();
+            } else if (sectionId === 'vibe-check') {
+                loadChatAgents();
+            } else if (sectionId === 'benchmark') {
+                loadBenchmarkAgents();
+            }
+        }
+
+        // Benchmark Section – load test types
+        async function loadBenchmarkTypes() {
+            try {
+                const res = await fetch('/api/benchmark/types');
+                const data = await res.json();
+                const select = document.getElementById('test-type-select');
+                select.innerHTML = ''; // clear default
+                data.benchmarks.forEach(({key, description}) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = description ? `${key} – ${description}` : key;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Failed to load benchmark types', err);
+                showToast('Failed to load benchmark types', 'error');
+            }
+        }
+
+        // Home Feed functions
+        async function getAgentsMap() {
+            if (agentsCache) return agentsCache;
+            try {
+                const res = await fetch('/api/agents');
+                const data = await res.json();
+                agentsCache = {};
+                (data.agents || []).forEach(a => {
+                    agentsCache[a.id] = a.name;
+                });
+                return agentsCache;
+            } catch (e) {
+                console.error('Failed to fetch agents list', e);
+                agentsCache = {};
+                return agentsCache;
+            }
+        }
+
+        async function loadRecentBenchmarks() {
+            const container = document.getElementById('recent-benchmarks-main');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/benchmark/history/latest?limit=5');
+                const data = await res.json();
+                const benchmarks = data.results || [];
+                const agentsMap = await getAgentsMap();
+
+                if (benchmarks.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-400 py-4">No recent runs</div>';
+                    return;
+                }
+
+                container.innerHTML = benchmarks.map(b => {
+                    const date = new Date(b.timestamp).toLocaleString();
+                    let scoreDisplay = b.score;
+                    if (b.test_type === 'accuracy') {
+                        scoreDisplay = `${(b.score * 100).toFixed(1)}%`;
+                    } else if (b.test_type === 'response_time') {
+                        scoreDisplay = `${b.score.toFixed(2)}s`;
+                    }
+                    return `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-700 text-sm">
+                            <span class="text-gray-300">${date}</span>
+                            <span class="text-gray-400 truncate max-w-xs">${agentsMap[b.agent_id] || 'Agent #' + b.agent_id}</span>
+                            <span class="text-gray-400">${b.test_type}</span>
+                            <span class="font-semibold">${scoreDisplay}</span>
+                        </div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load recent benchmarks', err);
+                container.innerHTML = '<div class="text-center text-red-400 py-4">Error loading data</div>';
+            }
+        }
+
+        async function loadLeaderboard() {
+            const container = document.getElementById('leaderboard-main');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/benchmark/leaderboard?limit=5');
+                const data = await res.json();
+                const leaderboard = data.leaderboard || [];
+                const agentsMap = await getAgentsMap();
+
+                if (leaderboard.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-400 py-4">No leaderboard data</div>';
+                    return;
+                }
+
+                container.innerHTML = leaderboard.map((entry, idx) => {
+                    const name = agentsMap[entry.agent_id] || 'Agent #' + entry.agent_id;
+                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
+                    return `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-700 text-sm">
+                            <span class="flex items-center gap-2 text-gray-300">${medal}<button class="underline hover:text-blue-400" onclick="openAgentFromDashboard(${entry.agent_id})">${name}</button></span>
+                            <span class="text-gray-400">${entry.runs} runs</span>
+                            <span class="font-semibold">${parseFloat(entry.avg_score).toFixed(2)}</span>
+                        </div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load leaderboard', err);
+                container.innerHTML = '<div class="text-center text-red-400 py-4">Error loading data</div>';
+            }
+        }
+
+        function loadHomeFeed() {
+            loadRecentBenchmarks();
+            loadLeaderboard();
+            loadDashboardAgents();
+        }
+
+        // ------------------------------
+        // Dashboard Agents
+        // ------------------------------
+        async function loadDashboardAgents() {
+            const container = document.getElementById('dashboard-agents');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/agents');
+                const data = await res.json();
+                const agents = data.agents || [];
+
+                if (agents.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-400 py-4">No agents yet</div>';
+                    return;
+                }
+
+                container.innerHTML = agents.slice(0, 6).map(agent => {
+                    return `
+                        <div class="glass-card p-4 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">${agent.name}</h4>
+                                <p class="text-sm text-gray-400 mb-4 truncate">${agent.description || ''}</p>
+                                <div class="text-xs text-gray-500 mb-2">${agent.tools.length} tools • ${agent.provider}/${agent.model}</div>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-4">
+                                <button onclick="chatWithAgent(${agent.id})" class="px-3 py-1 bg-green-600 rounded hover:bg-green-500 transition-colors text-sm"><i class="fas fa-comments mr-1"></i>Chat</button>
+                                <button onclick="benchmarkAgent(${agent.id})" class="px-3 py-1 bg-purple-600 rounded hover:bg-purple-500 transition-colors text-sm"><i class="fas fa-bullseye mr-1"></i>Test</button>
+                            </div>
+                        </div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load agents', err);
+                container.innerHTML = '<div class="text-center text-red-400 py-4">Error loading agents</div>';
+            }
+        }
+
+        // Navigate to Agents tab and focus card
+        function openAgentFromDashboard(agentId) {
+            showSection('agents');
+            // slight delay to ensure grid rendered
+            setTimeout(() => {
+                const card = document.querySelector(`[data-agent-id="${agentId}"]`);
+                if (card) {
+                    card.scrollIntoView({behavior:'smooth', block:'center'});
+                    card.classList.add('ring-2','ring-blue-500');
+                    setTimeout(()=>card.classList.remove('ring-2','ring-blue-500'),2000);
+                }
+            }, 300);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply stored theme preference
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
+
+            refreshProviderOptions();
+            updateModelsList();
+            document.getElementById('provider-select').addEventListener('change', updateModelsList);
+            loadAgents();
+            loadAvailableTools();
+            loadBenchmarkTypes();
+
+            // Initial load for dashboard feed
+            loadHomeFeed();
+
+            // Show key availability when provider changes
+            document.getElementById('provider-select').addEventListener('change', checkApiKeyToast);
+        });
+
+        // ------------------------------
+        // API key toast helper
+        // ------------------------------
+        function checkApiKeyToast() {
+            const provider = document.getElementById('provider-select').value.toLowerCase();
+            const keyMap = { openai: 'openai-api-key', anthropic: 'anthropic-api-key', mistral: 'mistral-api-key', groq: 'groq-api-key' };
+            const inputId = keyMap[provider];
+            if (!inputId) return;
+            const value = document.getElementById(inputId)?.value.trim();
+            if (value) {
+                showToast(`${provider.charAt(0).toUpperCase()+provider.slice(1)} API key detected`);
+            } else {
+                showToast(`No ${provider.charAt(0).toUpperCase()+provider.slice(1)} API key provided`, 'error');
+            }
+        }
+
+        // ------------------------------
+        // Provider dropdown filtering
+        // ------------------------------
+        function refreshProviderOptions() {
+            const providerSelect = document.getElementById('provider-select');
+            if (!providerSelect) return;
+            const models = {{ available_models|tojson }}; // Jinja placeholder remains intact outside JS runtime
+            providerSelect.innerHTML = '';
+            Object.keys(models).forEach(p => {
+                const keyId = providerKeyMap[p.toLowerCase()];
+                const keyValue = document.getElementById(keyId)?.value.trim() || localStorage.getItem(keyId) || '';
+                if (!keyValue) return; // skip provider without key
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p.charAt(0).toUpperCase()+p.slice(1);
+                providerSelect.appendChild(opt);
+            });
+            // If none available, disable form submit
+            const createBtn = document.querySelector('#agent-config-form button[type="submit"]');
+            if (providerSelect.options.length === 0) {
+                providerSelect.innerHTML = '<option value="">Add API keys first</option>';
+                createBtn.disabled = true;
+            } else {
+                createBtn.disabled = false;
+            }
+        }
+
+        // Persist keys and refresh providers when user types keys (dashboard inputs)
+        Object.entries(providerKeyMap).forEach(([provider,id]) => {
+            document.addEventListener('input', (e)=>{
+                if(e.target && e.target.id===id){
+                    localStorage.setItem(id,e.target.value.trim());
+                    refreshProviderOptions();
+                }
+            });
+        });
+
+        // ------------------------------
+        // Theme toggle logic
+        // ------------------------------
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.classList.add('light');
+            } else {
+                document.documentElement.classList.remove('light');
+            }
+            localStorage.setItem('theme', theme);
+            updateThemeIcon();
+        }
+
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.contains('light');
+            applyTheme(isLight ? 'dark' : 'light');
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('theme-toggle-icon');
+            if (!icon) return;
+            if (document.documentElement.classList.contains('light')) {
+                icon.className = 'fas fa-moon';
+            } else {
+                icon.className = 'fas fa-sun';
+            }
+        }
+    </script>
+    </div> <!-- Close container -->
+    </div> <!-- Close main-content -->
+
+    <!-- Site Footer -->
+    <footer class="site-footer flex justify-end items-center py-4 px-12">
+        <img src="/static/logo-hero.png" alt="Agent Lasso" class="brand-logo logo-icon" style="width: 8rem; height: 8rem;">
+    </footer>
+</body>
+</html> 

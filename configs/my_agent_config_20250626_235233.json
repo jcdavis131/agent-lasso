@@ -1,0 +1,24 @@
+{
+    "llm": {
+        "provider": "OpenAI",
+        "model_name": "gpt-4o-mini"
+    },
+    "tools": [
+        "EnhancedKnowledgeGraphTool",
+        "KnowledgeGraphAnalysisTool"
+    ],
+    "knowledge_graph": {
+        "enable_neo4j": false,
+        "neo4j_uri": "bolt://localhost:7687",
+        "neo4j_user": "neo4j",
+        "neo4j_password": "password",
+        "vector_index_name": "embedding_index",
+        "embedding_model": "all-MiniLM-L6-v2",
+        "embedding_dimension": 384,
+        "similarity_threshold": 0.75,
+        "enable_chunk_filtering": true,
+        "llm_for_extraction_provider": "openai",
+        "llm_for_extraction_model": "gpt-4o-mini"
+    },
+    "system_prompt": "You are a helpful AI assistant. Your goal is to provide accurate and concise answers based on the knowledge available through your tools."
+}
