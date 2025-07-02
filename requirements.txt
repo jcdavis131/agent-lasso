@@ -48,5 +48,4 @@ openai>=1.0.0  # for embeddings
 
 # Graph processing and analysis
 igraph>=0.10.0
-community>=1.0.0
 python-louvain>=0.16 
