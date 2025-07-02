@@ -3,26 +3,25 @@
   "builds": [
     {
       "src": "main.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "excludeFiles": "{**/*.py[cod],**/__pycache__/**,tests/**,benchmarks/**,scripts/**,examples/**,docs/**}"
+      }
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "main.py"
+      "src": "/static/(.*)",
+      "dest": "/static/$1",
+      "continue": true
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "src": "/(.*)",
+      "dest": "main.py"
     }
   ],
   "env": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "INFO"
-  },
-  "functions": {
-    "main.py": {
-      "excludeFiles": "{**/*.py[cod],**/__pycache__/**,tests/**,benchmarks/**,scripts/**,examples/**,docs/**}"
-    }
   }
 } 
