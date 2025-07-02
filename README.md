@@ -1,320 +1,123 @@
-# Agent Lasso - Configure, Play, Benchmark.
+# Agent Lasso – Configure, Play, Benchmark.
 
 *Transform complex data into actionable insights*
 
-A cutting-edge AI platform engineered for modern professionals who demand both power and elegance. Experience the seamless fusion of advanced analytics, neural intelligence, and visual storytelling—all through an interface designed to inspire.
+Agent Lasso is a lightweight AI platform that lets you assemble specialised "agents", run them through real-time chats, and benchmark their performance – all from a single web interface powered by FastAPI + Tailwind.
 
-## 🎯 Philosophy: Elegant Simplicity
+---
+## 🎯 Why Agent Lasso?
+* ✅ **Zero-Friction Deployment** – no cloud accounts or databases required. Runs locally, deploys to Vercel in one click.
+* ✅ **Adaptive Intelligence** – plug-and-play tools, configurable LLM back-ends and auto-optimising agent templates.
+* ✅ **Privacy by Design** – everything is processed on your machine unless you opt-in to external APIs.
+* ✅ **Intuitive Mastery** – visual interface, live progress events and persistent conversation threads.
+* ✅ **Scalable Architecture** – GraphRAG-ready knowledge graph layer plus Neo4j / JSON fallback.
 
-This platform embodies:
-- ✅ **Zero-Friction Deployment** - Intelligent configuration that just works
-- ✅ **Adaptive Intelligence** - Self-optimizing systems with graceful degradation
-- ✅ **Privacy by Design** - Your data remains yours, always
-- ✅ **Intuitive Mastery** - Complex capabilities through simple interactions
-- ✅ **Scalable Architecture** - Built for growth, designed for clarity
-
+---
 ## 🚀 Quick Start
-
-### 1. Install Dependencies
+1. Create a virtual environment (optional but recommended)
+```bash
+python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
+```
+2. Install the dependencies
 ```bash
 pip install -r requirements.txt
 ```
-
-### 2. Test All Tools
-```bash
-python quick_tool_test.py
+3. (Optional) add API keys & secrets
+Create a `secrets.txt` file in the project root. Any `KEY=value` pair in this file is automatically loaded at runtime:
+```text
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=...
+MISTRAL_API_KEY=...
+GROQ_API_KEY=...
+NEO4J_PASSWORD=...
 ```
-
-### 3. Run the Interface
+4. Start the development server (hot-reload)
 ```bash
-# Agent Lasso Interface (Main Application)
-python agent_setup_landing.py
-
-# Or Streamlit Interface
-streamlit run streamlit_app.py
+uvicorn agent_setup_landing:app --reload
 ```
+Open http://127.0.0.1:8000 in your browser ➜ the full glass-morphic UI will load.
 
+> In production you can either:
+> • `uvicorn agent_setup_landing:app --host 0.0.0.0 --port 8000` on your own box, or
+> • **Deploy to Vercel** – the provided `vercel.json` is pre-configured.
+
+---
 ## 🛠️ Available Tools
+| Category | Tool | Description |
+|----------|------|-------------|
+| Core (always on) | `file_operations` | Read, write, append, delete files & list directories |
+|  | `data_analysis` | Quick descriptive stats, correlations & basic visualisations for CSV / JSON |
+|  | `current_time` | Returns the current date & time (temporal grounding) |
+|  | `calculator` | Safe arithmetic expression evaluator |
+| Search | `duckduckgo_search` | Privacy-respecting web search (no key) |
+|  | `searx_search` | Search via your own or public SearXNG instance |
+| Optional | `weather` | Local weather via OpenWeatherMap (uses `OPENWEATHER_API_KEY` if present, otherwise link fallback) |
+|  | `arxiv_search` | Academic paper search through arXiv API |
+| Interactive | `interactive_canvas` | Opens a collaborative canvas, lets the agent draw / clear shapes |
 
-### Core Tools (Always Available)
-- **📊 file_operations** - Read, write, append, delete files or list directories
-- **📈 data_analysis** - Analyze CSV/JSON data (summary, correlation, visualization)
-- **🕐 current_time** - Get current date and time
-- **🧮 calculator** - Safe mathematical expression evaluation
-
-### Search Tools
-- **🦆 duckduckgo_search** - Reliable web search (no API key required)
-- **🔍 searx_search** - Privacy-focused aggregated search (local SearXNG)
-
-### Optional Enhanced Tools
-- **🌤️ weather** - Weather information (with OpenWeatherMap API or fallback links)
-- **📚 arxiv_search** - Academic paper search from arXiv
-
-## 🔍 Search Setup
-
-### Option 1: DuckDuckGo (Instant)
-Already included - works immediately after installation:
-```python
-result = duckduckgo_search("Python programming", max_results=5)
-```
-
-### Option 2: SearXNG (Privacy-focused)
-Set up local SearXNG with Docker for enhanced privacy and aggregated results:
-
-```bash
-# Start SearXNG container
-docker run -d --name searxng -p 8080:8080 searxng/searxng
-
-# Use in Agent Lasso
-result = searx_search("machine learning", max_results=5)
-```
-
-**Full setup guide:** [SEARXNG_DOCKER_GUIDE.md](SEARXNG_DOCKER_GUIDE.md)
-
-## 📋 Configuration
-
-### Required: None
-The system works without any configuration.
-
-### Optional: Environment Variables
-
-Create a `.env` file for enhanced features:
-```bash
-# Optional: Enhanced weather data
-OPENWEATHER_API_KEY=your_openweather_key
-
-# Optional: Custom SearXNG instance
-SEARX_URL=http://localhost:8080
-```
-
-## 🧪 Testing
-
-### Quick Test All Tools
-```bash
-python quick_tool_test.py
-```
-
-### Individual Tool Tests
-```python
-from tools import *
-
-# Test calculator
-result = calculator("2 + 3 * 4")
-print(result)  # 🧮 2 + 3 * 4 = 14
-
-# Test search
-result = duckduckgo_search("Python tutorial", max_results=3)
-print(result)  # 🦆 DuckDuckGo Search Results...
-
-# Test data analysis
-data = '[{"name": "Alice", "score": 95}, {"name": "Bob", "score": 87}]'
-result = data_analysis(data, "summary")
-print(result)  # 📊 Data Summary...
-```
-
-## 🌐 Interfaces
-
-### Agent Lasso Interface (Main Application)
-- Modern, responsive UI with glassmorphic design
-- Real-time tool execution and AI model configuration
-- Advanced chat with thread management
-- Complete agent setup and benchmarking tools
-- Start: `python agent_setup_landing.py`
-
-### Streamlit Interface
-- Simple, clean interface
-- Easy to customize
-- Start: `streamlit run streamlit_app.py`
-
-### Direct Python Integration
+Retrieve the live tool objects in Python:
 ```python
 from tools import get_tools
-
-# Get all available tools
-tools = get_tools()
-
-# Use with your LLM framework
-for tool in tools:
-    print(f"Tool: {tool.name}")
-    print(f"Description: {tool.description}")
+for t in get_tools():
+    print(t.name, '-', t.description)
 ```
 
-## 📊 System Architecture
+---
+## 🌐 User Interface
+* **FastAPI backend** – JSON & SSE endpoints under `/api/*`.
+* **Jinja-tailwind frontend** – single-page app in `templates/index.html` with progressive enhancement.
+* **Live agent stream** – watch your agent think, use tools and refine answers step-by-step.
+* **Persistent SQLite storage** – conversations, agent configurations and benchmark scores live in `agent_log.db`.
 
-```
-Agent Lasso (Data + AI + Visualization)
-├── Core Tools (No Dependencies)
-│   ├── file_operations
-│   ├── data_analysis  
-│   ├── current_time
-│   └── calculator
-├── Search Tools
-│   ├── duckduckgo_search (Direct)
-│   └── searx_search (Local Docker)
-├── Enhanced Tools (Optional APIs)
-│   ├── weather (OpenWeatherMap + fallback)
-│   └── arxiv_search (arXiv API)
-└── Interfaces
-    ├── FastHTML (Recommended)
-    ├── Streamlit
-    └── Python Direct
-```
+---
+## 🧠 GraphRAG Engine  
+`graphrag_engine.py` provides a pluggable GraphRAG layer.
+* **Neo4j mode** – vector & graph indices inside Neo4j 5.x (requires server + credentials).
+* **JSON fallback** – zero-dependency in-memory graph for local testing.
+* Sentence-Transformers embeddings with optional chunk filtering.
 
-## 🔄 Reliability Features
+Configure via `config.GRAPHRAG_CONFIG` or override with environment variables.
 
-### Automatic Fallbacks
-- **Weather Tool**: API → Weather service links
-- **Search Tools**: DuckDuckGo → SearXNG → Direct links
-- **All Tools**: Comprehensive error handling with helpful guidance
+---
+## 🧪 Benchmarking
+The `/api/benchmark/*` endpoints let you execute pluggable test harnesses (see `benchmarks.py`).  Results are stored and a live leaderboard is available in the UI.
 
-### Error Recovery
-```python
-# Example: Weather tool with fallback
-result = get_weather("New York")
-# Returns either:
-# 1. Real weather data (if API key configured)
-# 2. Links to weather services (fallback mode)
-```
+---
+## ⚙️ Configuration Cheatsheet
+| File | Purpose |
+|------|---------|
+| `secrets.txt` | **Recommended** place for keys & passwords (git-ignored) |
+| `config.py` | Default model providers, embedding models, GraphRAG & tool settings |
+| `database.py` | SQLite schema & helper functions |
+| `vercel.json` | Zero-config deployment to Vercel Functions |
 
-### Rate Limiting Protection
-- No external rate limits (DuckDuckGo)
-- Local SearXNG (unlimited)
-- Built-in retry logic
+Most settings can also be overridden via standard environment variables.
 
-## 📦 Dependencies
-
-### Core (Required)
+---
+## 📦 Key Dependencies
 ```
 langchain>=0.3.9
 langchain-core>=0.3.21
-duckduckgo-search>=6.3.4
-requests>=2.32.3
+fastapi>=0.109.0
+uvicorn>=0.32.0
 pandas>=2.0.0
-pydantic>=2.0.0
+sentence-transformers>=2.2.2
+neo4j>=5.0.0  # optional, for full GraphRAG
 ```
-
-### Interfaces
-```
-fasthtml>=0.6.9          # For FastHTML interface
-streamlit>=1.28.0        # For Streamlit interface
-uvicorn>=0.32.0          # Web server
-```
-
-### Optional Enhancements
-```
-docker                   # For SearXNG setup
-```
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**1. DuckDuckGo Search Not Working**
-```bash
-pip install --upgrade duckduckgo-search
-```
-
-**2. SearXNG Connection Failed**
-```bash
-# Check if Docker is running
-docker ps
-
-# Start SearXNG
-docker run -d --name searxng -p 8080:8080 searxng/searxng
-
-# Or use public instance
-result = searx_search("query", searx_url="https://search.blankenberg.eu")
-```
-
-**3. Tool Import Errors**
-```bash
-# Reinstall dependencies
-pip install -r requirements.txt --upgrade
-```
-
-### Debugging
-
-Enable debug mode in any interface:
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
-
-## 🚀 Advanced Usage
-
-### Custom Tool Integration
-```python
-from tools import AVAILABLE_TOOLS
-from langchain_core.tools import tool
-
-@tool
-def my_custom_tool(query: str) -> str:
-    """My custom tool implementation."""
-    return f"Custom result for: {query}"
-
-# Add to available tools
-AVAILABLE_TOOLS.append(my_custom_tool)
-```
-
-### Search Strategy
-```python
-def intelligent_search(query: str):
-    """Try multiple search approaches."""
-    try:
-        # Primary: DuckDuckGo
-        return duckduckgo_search(query, max_results=5)
-    except:
-        try:
-            # Secondary: Local SearXNG
-            return searx_search(query, max_results=5)
-        except:
-            # Fallback: Public SearXNG
-            return searx_search(
-                query, 
-                max_results=5, 
-                searx_url="https://search.blankenberg.eu"
-            )
-```
-
-## 📝 Changelog
-
-### v2.0 - Simplified & Reliable
-- ✅ Removed all API key dependencies for core functionality
-- ✅ Added reliable DuckDuckGo search integration
-- ✅ Added local SearXNG support with Docker guide
-- ✅ Simplified architecture and dependencies
-- ✅ Enhanced error handling and fallbacks
-- ✅ Updated interfaces for better UX
-- ✅ Comprehensive testing and documentation
-
-### v1.0 - Full Featured
-- Previous version with extensive API integrations
-- Complex rate limiting and proxy management
-- Multiple search engine integrations
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Test with `python quick_tool_test.py`
-4. Submit a pull request
-
-## 📄 License
-
-MIT License - feel free to use and modify for your projects.
+See `requirements.txt` for the exhaustive list and pinned versions.
 
 ---
+## 🔧 Troubleshooting
+* **DuckDuckGo search not working** ➜ `pip install --upgrade duckduckgo-search`
+* **Neo4j connection refused** ➜ ensure Neo4j is running (`docker run -p 7687:7687 neo4j:5`), then set `NEO4J_PASSWORD`.
+* **Port already in use** ➜ change the port: `uvicorn agent_setup_landing:app --port 9000 --reload`.
 
-## 🎉 The Future of AI Interaction
+---
+## 🤝 Contributing
+1. Fork the repo & create a feature branch.
+2. Run the unit tests & `black .`.
+3. Open a PR – please describe the tool / feature you added and include benchmark results if relevant.
 
-Agent Lasso represents a new paradigm in AI platforms—where sophisticated intelligence meets human intuition:
-
-- **Effortless Onboarding** - From installation to insights in minutes
-- **Adaptive Intelligence** - Systems that learn and evolve with your workflow  
-- **Uncompromising Privacy** - Advanced capabilities without sacrificing data sovereignty
-- **Intuitive Interface** - Professional-grade power through elegant simplicity
-- **Limitless Potential** - Architecture designed for tomorrow's challenges
-
-Join the next generation of professionals who are transforming how we interact with artificial intelligence.
-
-**Begin Your Journey:** `pip install -r requirements.txt && python agent_setup_landing.py`
+---
+## 📄 License
+MIT – do what you want, just give credit.
