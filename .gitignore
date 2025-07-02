@@ -41,3 +41,4 @@ skills_data_clean.json
 
 # Node modules (if ever added for tooling)
 node_modules/ 
+.vercel

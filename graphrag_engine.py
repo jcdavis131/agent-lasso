@@ -14,8 +14,6 @@ from langchain_groq import ChatGroq
 from langchain.chains import create_tagging_chain_pydantic, create_extraction_chain_pydantic
 from pydantic import BaseModel, Field
 from enum import Enum
-from sentence_transformers import SentenceTransformer
-import numpy as np
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -76,10 +74,20 @@ class BaseGraphRAG(ABC):
             raise ValueError(f"Unsupported LLM provider: {provider}")
 
     def _initialize_embedding_model(self, model_name: str):
+        """Lazily create and return a `SentenceTransformer` instance.
+
+        The heavy import is done inside the helper so the module global scope
+        stays lightweight.
+        """
         try:
+            from importlib import import_module
+
+            SentenceTransformer = import_module("sentence_transformers").SentenceTransformer
             return SentenceTransformer(model_name)
-        except Exception as e:
-            logger.error(f"Failed to load SentenceTransformer model {model_name}: {e}")
+        except Exception as e:  # pragma: no cover
+            logger.error(
+                "Failed to load SentenceTransformer model %s: %s", model_name, e
+            )
             raise
 
 class Neo4jGraphRAG(BaseGraphRAG):

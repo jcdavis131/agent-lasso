@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "agent_setup_landing.py",
+      "src": "main.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "agent_setup_landing.py"
+      "dest": "main.py"
     }
   ],
   "env": {
