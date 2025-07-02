@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Lasso | Configure, Play, Benchmark.</title>
+    <title>Silver Lasso | Configure, Play, Benchmark.</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="/static/logo-hero.png">
@@ -11,7 +11,7 @@
         /* Theme variables */
         :root {
             /* Starry desert night sky palette */
-            --header-gradient: linear-gradient(120deg, #0f172a 0%, #1e3a8a 40%, #312e81 90%);
+            --header-gradient: linear-gradient(120deg, #29292a 0%, #858586 40%, #585866 90%);
             --body-gradient: linear-gradient(135deg, #000814 0%, #001d3d 100%);
         }
         :root.light {
@@ -49,8 +49,8 @@
             display: block;
         }
         .nav-item.active {
-            background: rgba(59, 130, 246, 0.3);
-            border-color: #3b82f6;
+            background: rgba(123, 168, 240, 0.3);
+            border-color: #3b83f620;
         }
         .chat-message {
             max-width: 80%;
@@ -99,7 +99,7 @@
         }
         .expand-btn {
             cursor: pointer;
-            color: #3b82f6;
+            color: #545658d7;
             text-decoration: underline;
         }
         .expand-btn:hover {
@@ -209,7 +209,7 @@
             top: 1rem;
             right: 1rem;
             z-index: 1001;
-            background: rgba(37, 99, 235, 0.9); /* starlight blue */
+            background: rgba(96, 100, 108, 0.9); /* starlight blue */
             border: none;
             color: white;
             width: 48px;
@@ -224,7 +224,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         .header-drawer-toggle:hover {
-            background: rgba(37, 99, 235, 1);
+            background: rgba(67, 74, 90, 0.87);
             transform: scale(1.1);
         }
         .feature-card {
@@ -241,7 +241,7 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         .hero-title {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
+            background: linear-gradient(135deg, #495576 0%, #7c808b 50%, #738f9b2d 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -275,11 +275,11 @@
             }
         }
         @keyframes glow {
-            0%, 100% { filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.6)); }
-            50% { filter: drop-shadow(0 0 14px rgba(79, 70, 229, 1)); }
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(99, 96, 159, 0.365)); }
+            50% { filter: drop-shadow(0 0 14px rgba(169, 166, 228, 0.774)); }
         }
         #logo-icon {
-            filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.6));
+            filter: drop-shadow(0 0 6px rgba(93, 92, 114, 0.6));
             animation: glow 3s ease-in-out infinite;
         }
         /* Gradient animation */
@@ -414,27 +414,21 @@
         <div class="header-drawer-content">
             <!-- Hero Section -->
             <div class="text-center mb-8">
-                <img src="/static/logo-hero.png" alt="Agent Lasso logo" id="logo-icon" class="mx-auto w-24 mb-4">
-                <h1 class="hero-title">Agent Lasso</h1>
+                
+                <center>
+                    <img src="/static/logo-hero.png" alt="Silver Lasso" class="brand-logo logo-icon" style="width: 8rem; height: 8rem;"></center>
+                </center>
+                <h1 class="hero-title">Silver Lasso</h1>
                 <p class="hero-subtitle">Configure, Play, Benchmark.</p>
-                <p class="text-center text-gray-400 mt-2">Agent Lasso lets you build AI agents, try them in a live playground, and benchmark performance with built-in tests.</p>
-                <!-- CTA Buttons -->
-                <div class="flex justify-center mt-6 gap-4">
-                    <button onclick="showSection('configure')" class="cta-btn cta-primary">
-                        <i class="fas fa-rocket mr-2"></i>Get Started
-                    </button>
-                    <button onclick="showSection('vibe-check')" class="cta-btn cta-secondary">
-                        Live Demo
-                    </button>
-                </div>
+                <p class="text-center text-gray-400 mt-2">Silver Lasso lets you build AI agents, try them in a live playground, and benchmark performance with built-in tests.</p>
             </div>
             
             <!-- Features Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="feature-card">
+                <div class="feature-card" onclick="showSection('configure')">
                     <div class="flex items-center mb-3">
-                        <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-hat-cowboy text-xl"></i>
+                        <div class="w-12 h-12 bg-silver-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-cog text-xl"></i>
                         </div>
                         <div>
                             <h3 class="font-bold text-lg">Configure</h3>
@@ -444,22 +438,22 @@
                     <p class="text-gray-300 text-sm">Choose from pre-built agent templates and customize with your preferred models and tools.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card" onclick="showSection('vibe-check')">
                     <div class="flex items-center mb-3">
-                        <div class="w-12 h-12 bg-purple-700 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-star text-xl"></i>
+                        <div class="w-12 h-12 bg-silver-700 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-comments text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-lg">Chat & Test</h3>
+                            <h3 class="font-bold text-lg">Chat Playground</h3>
                             <p class="text-sm text-gray-400">Real-time interaction</p>
                         </div>
                     </div>
                     <p class="text-gray-300 text-sm">Test your agents with live chat, see thinking processes, and watch tool usage in real-time.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card" onclick="showSection('benchmark')">
                     <div class="flex items-center mb-3">
-                        <div class="w-12 h-12 bg-teal-600 rounded-lg flex items-center justify-center mr-4">
+                        <div class="w-12 h-12 bg-silver-600 rounded-lg flex items-center justify-center mr-4">
                             <i class="fas fa-bullseye text-xl"></i>
                         </div>
                         <div>
@@ -508,13 +502,13 @@
         <nav class="flex justify-center mb-8">
             <div class="glass-card p-1 flex space-x-1 nav-bar">
                 <button class="nav-item px-6 py-3 rounded-lg transition-all active" onclick="showSection('dashboard')" id="nav-dashboard">
-                    <i class="fas fa-newspaper mr-2"></i>Dashboard
+                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
                 </button>
                 <button class="nav-item px-6 py-3 rounded-lg transition-all flex items-center" onclick="showSection('configure')" id="nav-configure">
-                    <i class="fas fa-cog mr-2"></i>Configure
+                    <i class="fas fa-cog mr-2"></i> Configure
                 </button>
                 <button class="nav-item px-6 py-3 rounded-lg transition-all" onclick="showSection('vibe-check')">
-                    <i class="fas fa-star mr-2"></i>Vibe Check
+                    <i class="fas fa-comments mr-2"></i> Chat Playground
                 </button>
                 <button class="nav-item px-6 py-3 rounded-lg transition-all" onclick="showSection('benchmark')">
                     <i class="fas fa-bullseye mr-2"></i>Benchmark
@@ -2056,7 +2050,7 @@
 
     <!-- Site Footer -->
     <footer class="site-footer flex justify-end items-center py-4 px-12">
-        <img src="/static/logo-hero.png" alt="Agent Lasso" class="brand-logo logo-icon" style="width: 8rem; height: 8rem;">
+        <img src="/static/logo-hero.png" alt="Silver Lasso" class="brand-logo logo-icon" style="width: 4rem; height: 4rem;">
     </footer>
 </body>
 </html> 
