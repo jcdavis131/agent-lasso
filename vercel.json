@@ -10,10 +10,19 @@
     {
       "src": "/(.*)",
       "dest": "main.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
     }
   ],
   "env": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "INFO"
+  },
+  "functions": {
+    "main.py": {
+      "excludeFiles": "{**/*.py[cod],**/__pycache__/**,tests/**,benchmarks/**,scripts/**,examples/**,docs/**}"
+    }
   }
 } 
