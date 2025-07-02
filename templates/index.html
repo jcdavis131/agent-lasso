@@ -461,6 +461,25 @@
             filter: invert(0) brightness(1);
         }
 
+        /* Adjust dark Tailwind classes for light mode */
+        .light .bg-gray-800,
+        .light .bg-gray-900,
+        .light .bg-gray-700 {
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+        }
+        .light .border-gray-600 {
+            border-color: #cbd5e1 !important;
+        }
+        .light .text-gray-400 {
+            color: #475569 !important;
+        }
+        /* Tool pill color in light mode */
+        .light .bg-blue-900 {
+            background-color: #2563eb !important; /* Tailwind blue-600 */
+            color: #ffffff !important;
+        }
+
         /* ------------------------------ */
         /* Pulsing Silver Rope Animation  */
         /* ------------------------------ */
@@ -631,38 +650,6 @@
                         <div class="text-center text-gray-400 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading…</div>
                     </div>
                 </div>
-
-                <!-- API Keys Card -->
-                <div class="mt-10">
-                    <h3 class="text-xl font-semibold mb-4">API Keys</h3>
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                        <div class="text-sm text-gray-400 mb-4">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Enter your personal API keys for LLM providers. These are required to use the respective models.
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-brain mr-2 text-green-400"></i>OpenAI API Key</label>
-                                <input type="password" id="openai-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="sk-...">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-robot mr-2 text-orange-400"></i>Anthropic API Key</label>
-                                <input type="password" id="anthropic-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="sk-ant-...">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-wind mr-2 text-red-400"></i>Mistral API Key</label>
-                                <input type="password" id="mistral-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="...">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-bolt mr-2 text-yellow-400"></i>Groq API Key</label>
-                                <input type="password" id="groq-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="gsk_...">
-                            </div>
-                        </div>
-                        <div class="mt-4 text-xs text-gray-500">
-                            <i class="fas fa-shield-alt mr-1"></i>API keys are encrypted and stored securely. They're only used for your agent requests.
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -698,6 +685,10 @@
                 <!-- Configuration Form -->
                 <div class="glass-card p-6 mb-8">
                     <h3 class="text-2xl font-semibold mb-4">2. Configure Your Agent</h3>
+                    <!-- Bring Your Own Keys Trigger (placed before provider selection) -->
+                    <button type="button" onclick="openKeysModal()" class="flex items-center text-blue-500 hover:text-blue-400 text-sm">
+                        <i class="fas fa-key mr-2"></i>Bring Your Own Keys
+                    </button>
                     <form id="agent-config-form" class="space-y-6">
                         <input type="hidden" id="selected-template" name="template_key">
                         
@@ -716,7 +707,7 @@
                                        placeholder="Enter custom description (optional)">
                             </div>
                         </div>
-
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block mb-2 font-semibold">Model Provider</label>
@@ -786,7 +777,42 @@
                             </button>
                         </div>
                     </form>
-                </div>
+                </div> <!-- glass-card end -->
+
+                <!-- API Keys Modal -->
+                <div id="keys-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center">
+                    <div class="glass-card p-6 w-full max-w-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">API Keys</h3>
+                        <button onclick="closeKeysModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                    </div>
+                    <div class="text-sm text-gray-400 mb-4">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Enter your personal API keys for LLM providers. These are required to use the respective models.
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-brain mr-2 text-green-400"></i>OpenAI API Key</label>
+                            <input type="password" id="openai-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="sk-...">
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-robot mr-2 text-orange-400"></i>Anthropic API Key</label>
+                            <input type="password" id="anthropic-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="sk-ant-...">
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-wind mr-2 text-red-400"></i>Mistral API Key</label>
+                            <input type="password" id="mistral-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="...">
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-300"><i class="fas fa-bolt mr-2 text-yellow-400"></i>Groq API Key</label>
+                            <input type="password" id="groq-api-key" class="w-full bg-gray-700 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm" placeholder="gsk_...">
+                        </div>
+                    </div>
+                    <div class="mt-4 text-xs text-gray-500">
+                        <i class="fas fa-shield-alt mr-1"></i>API keys are encrypted and stored securely. They're only used for your agent requests.
+                    </div>
+                    </div>
+                 </div>
             </div>
         </div>
 
@@ -1001,6 +1027,17 @@
 
         function closeToast() {
             document.getElementById('toast').classList.add('hidden');
+        }
+
+        // ------------------------------
+        // API Keys Modal helpers
+        // ------------------------------
+        function openKeysModal() {
+            document.getElementById('keys-modal').classList.remove('hidden');
+        }
+
+        function closeKeysModal() {
+            document.getElementById('keys-modal').classList.add('hidden');
         }
 
         // Configure Section
