@@ -3,7 +3,6 @@
 import os
 import json
 import requests
-import pandas as pd
 import time
 from datetime import datetime
 from typing import Dict, List, Any, Optional
@@ -314,6 +313,19 @@ def data_analysis(data_source: str, analysis_type: str, parameters: Dict[str, An
     """Analyze CSV files or JSON data with summaries, correlations, and visualization preparation."""
     
     try:
+        # ------------------------------------------------------------------
+        # Import pandas *on demand* – keep the cold-start bundle light
+        # ------------------------------------------------------------------
+        try:
+            import pandas as pd  # noqa: WPS433 – imported inside function intentionally
+        except ModuleNotFoundError:
+            return (
+                "❌ The 'data_analysis' tool requires the 'pandas' package, which "
+                "is not installed in this lightweight deployment.  To enable "
+                "data analysis features, add `pandas` to your requirements.txt "
+                "and redeploy, or run locally with `pip install pandas`."
+            )
+
         if data_source.endswith('.csv') or data_source.endswith('.json'):
             if not Path(data_source).exists():
                 return f"❌ Data file '{data_source}' not found"

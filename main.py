@@ -37,7 +37,6 @@ import json
 import uuid
 import asyncio
 from datetime import datetime
-from refinement_agent import RefinementAgent
 from benchmarks import BENCHMARK_PLUGINS
 
 # Models for request/response validation

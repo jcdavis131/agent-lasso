@@ -33,12 +33,12 @@ NEO4J_PASSWORD=...
 ```
 4. Start the development server (hot-reload)
 ```bash
-uvicorn agent_setup_landing:app --reload
+uvicorn main:app --reload
 ```
 Open http://127.0.0.1:8000 in your browser ➜ the full glass-morphic UI will load.
 
 > In production you can either:
-> • `uvicorn agent_setup_landing:app --host 0.0.0.0 --port 8000` on your own box, or
+> • `uvicorn main:app --host 0.0.0.0 --port 8000` on your own box, or
 > • **Deploy to Vercel** – the provided `vercel.json` is pre-configured.
 
 ---

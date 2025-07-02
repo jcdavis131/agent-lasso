@@ -12,6 +12,7 @@ import os
 import difflib
 import logging
 import asyncio
+import importlib
 
 from langchain_core.tools import BaseTool
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage
@@ -39,9 +40,26 @@ from config import (
     KNOWLEDGE_GRAPH_CONFIG,
     get_llm
 )
-from enhanced_kg_tool import EnhancedKnowledgeGraphTool, KnowledgeGraphAnalysisTool
-from refinement_agent import RefinementAgent
-from langchain_core.documents import Document
+
+# The knowledge-graph tools pull in very heavy dependencies (Neo4j, Sentence
+# Transformers, etc.).  They are *not* required for the core landing-page
+# workflow and would explode the Vercel bundle size.  We therefore import
+# them lazily only if ENABLE_KG is set *and* the packages are installed.
+
+ENABLE_KG = os.getenv("ENABLE_KG", "false").lower() == "true"
+
+# Optional knowledge-graph tool placeholders (resolved at runtime if enabled)
+if ENABLE_KG:
+    try:
+        kg_module = importlib.import_module("enhanced_kg_tool")
+        EnhancedKnowledgeGraphTool = getattr(kg_module, "EnhancedKnowledgeGraphTool")
+        KnowledgeGraphAnalysisTool = getattr(kg_module, "KnowledgeGraphAnalysisTool")
+    except ModuleNotFoundError:  # Heavy deps not installed
+        ENABLE_KG = False
+        logging.warning(
+            "ENABLE_KG was true but knowledge-graph dependencies are missing; "
+            "KG tools will be disabled.  Add heavy deps and redeploy to enable."
+        )
 
 logger = logging.getLogger(__name__)
 
