@@ -15,8 +15,9 @@
             --body-gradient: linear-gradient(135deg, #000814 0%, #001d3d 100%);
         }
         :root.light {
-            --header-gradient: linear-gradient(120deg, #ffffff 0%, #e2e8f0 80%);
-            --body-gradient: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+            /* Slightly richer light gradients for better contrast */
+            --header-gradient: linear-gradient(120deg, #ffffff 0%, #f5f6fa 80%);
+            --body-gradient: linear-gradient(135deg, #f9fafb 0%, #eceff5 100%);
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
@@ -412,6 +413,52 @@
         }
         .site-footer {
             background: transparent;
+        }
+
+        /* ------------------------------ */
+        /* Light Theme Overrides          */
+        /* ------------------------------ */
+        :root.light {
+            /* Slightly richer light gradients for better contrast */
+            --header-gradient: linear-gradient(120deg, #ffffff 0%, #f5f6fa 80%);
+            --body-gradient: linear-gradient(135deg, #f9fafb 0%, #eceff5 100%);
+        }
+
+        /* Base text color */
+        .light body {
+            color: #1e293b; /* slate-900 */
+        }
+
+        /* Cards / panels */
+        .light .glass-card,
+        .light .system-card,
+        .light .feature-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        /* Assistant chat bubble */
+        .light .chat-message.assistant {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+        }
+
+        /* Nav item active highlight */
+        .light .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        /* Header drawer toggle & theme toggle buttons */
+        .light .header-drawer-toggle,
+        .light .theme-toggle {
+            background: rgba(229, 231, 235, 0.8);
+            color: #1e293b;
+        }
+
+        /* Footer logo tint fix in light mode */
+        .light .logo-icon {
+            filter: invert(0) brightness(1);
         }
     </style>
   </head>
