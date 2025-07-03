@@ -1,11 +1,11 @@
-# Agent Lasso – Configure, Play, Benchmark.
+# Silver Lasso – Configure, Play, Benchmark.
 
 *Transform complex data into actionable insights*
 
-Agent Lasso is a lightweight AI platform that lets you assemble specialised "agents", run them through real-time chats, and benchmark their performance – all from a single web interface powered by FastAPI + Tailwind.
+Silver Lasso is a lightweight AI platform that lets you assemble specialised "agents", run them through real-time chats, and benchmark their performance – all from a single web interface powered by FastAPI + Tailwind.
 
 ---
-## 🎯 Why Agent Lasso?
+## 🎯 Why Silver Lasso?
 * ✅ **Zero-Friction Deployment** – no cloud accounts or databases required. Runs locally, deploys to Vercel in one click.
 * ✅ **Adaptive Intelligence** – plug-and-play tools, configurable LLM back-ends and auto-optimising agent templates.
 * ✅ **Privacy by Design** – everything is processed on your machine unless you opt-in to external APIs.
@@ -96,13 +96,17 @@ Most settings can also be overridden via standard environment variables.
 ---
 ## 📦 Key Dependencies
 ```
-langchain>=0.3.9
-langchain-core>=0.3.21
-fastapi>=0.109.0
-uvicorn>=0.32.0
-pandas>=2.0.0
-sentence-transformers>=2.2.2
-neo4j>=5.0.0  # optional, for full GraphRAG
+langchain-core>=0.3.65
+langchain-community>=0.3.25
+langchain-openai>=0.3.24
+langchain-anthropic>=0.3.15
+langchain-mistralai>=0.2.10
+langchain-groq>=0.3.2
+langgraph>=0.4.8
+fastapi>=0.110.0
+uvicorn[standard]>=0.32.0
+duckduckgo-search>=8.0.4
+neo4j>=5.17.0      # optional, for full GraphRAG
 ```
 See `requirements.txt` for the exhaustive list and pinned versions.
 
@@ -121,3 +125,19 @@ See `requirements.txt` for the exhaustive list and pinned versions.
 ---
 ## 📄 License
 MIT – do what you want, just give credit.
+
+---
+## 🙏 Acknowledgements
+Silver Lasso stands on the shoulders of giants. Huge thanks to the open-source community and to the projects that made building this platform possible:
+
+* [FastAPI](https://fastapi.tiangolo.com/) & [Starlette](https://www.starlette.io/) – blazing-fast ASGI backend and SSE streaming.
+* [LangChain](https://www.langchain.com/) & [LangGraph](https://github.com/langchain-ai/langgraph) – agent orchestration and graph execution.
+* [Tailwind CSS](https://tailwindcss.com/) – utility-first styling for the glass-morphic UI.
+* [Jinja2](https://palletsprojects.com/p/jinja/) – server-rendered templates.
+* [DuckDuckGo Search](https://github.com/deedy5/duckduckgo-search) – privacy-friendly web search API.
+* [Sentence-Transformers](https://www.sbert.net/) – lightweight embeddings powering GraphRAG.
+* [Neo4j](https://neo4j.com/) – optional vector & graph backend.
+* LLM providers – [OpenAI](https://openai.com/), [Anthropic](https://www.anthropic.com/), [Mistral AI](https://mistral.ai/), [Groq](https://groq.com/).
+* And the countless maintainers of Python libraries we rely on every day—`requests`, `pydantic`, `pandas`, `beautifulsoup4`, and many more.
+
+Your work and generosity make Silver Lasso possible. Thank you!
