@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark Testing Center - Silver Lasso</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        .glass-morphic {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .exam-card {
+            transition: all 0.3s ease;
+        }
+        
+        .exam-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dasharray 0.35s;
+            transform-origin: 50% 50%;
+        }
+        
+        .live-indicator {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+        }
+        
+        .running-indicator {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div x-data="benchmarkDashboard()" x-init="init()" class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">🧪 Benchmark Testing Center</h1>
+            <p class="text-gray-600">Comprehensive agent performance analysis and exam management</p>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <div class="mb-8">
+            <nav class="flex space-x-8 border-b border-gray-200">
+                <button @click="activeTab = 'overview'" 
+                        :class="{'border-blue-500 text-blue-600': activeTab === 'overview', 'border-transparent text-gray-500': activeTab !== 'overview'}"
+                        class="py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Overview
+                </button>
+                <button @click="activeTab = 'exams'" 
+                        :class="{'border-blue-500 text-blue-600': activeTab === 'exams', 'border-transparent text-gray-500': activeTab !== 'exams'}"
+                        class="py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Available Exams
+                </button>
+                <button @click="activeTab = 'results'" 
+                        :class="{'border-blue-500 text-blue-600': activeTab === 'results', 'border-transparent text-gray-500': activeTab !== 'results'}"
+                        class="py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Results & Analytics
+                </button>
+                <button @click="activeTab = 'builder'" 
+                        :class="{'border-blue-500 text-blue-600': activeTab === 'builder', 'border-transparent text-gray-500': activeTab !== 'builder'}"
+                        class="py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Exam Builder
+                </button>
+                <button @click="activeTab = 'leaderboard'" 
+                        :class="{'border-blue-500 text-blue-600': activeTab === 'leaderboard', 'border-transparent text-gray-500': activeTab !== 'leaderboard'}"
+                        class="py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Leaderboard
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div x-show="activeTab === 'overview'" class="space-y-6">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="glass-morphic rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-600" x-text="stats.totalExams"></div>
+                    <div class="text-gray-600">Available Exams</div>
+                </div>
+                <div class="glass-morphic rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600" x-text="stats.totalSessions"></div>
+                    <div class="text-gray-600">Sessions Completed</div>
+                </div>
+                <div class="glass-morphic rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600" x-text="(stats.avgAccuracy * 100).toFixed(1) + '%'"></div>
+                    <div class="text-gray-600">Average Accuracy</div>
+                </div>
+                <div class="glass-morphic rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-orange-600" x-text="stats.activeAgents"></div>
+                    <div class="text-gray-600">Active Agents</div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="glass-morphic rounded-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
+                <div class="space-y-3">
+                    <template x-for="activity in recentActivity" :key="activity.id">
+                        <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-2 h-2 bg-green-500 rounded-full live-indicator"></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium" x-text="activity.description"></div>
+                                <div class="text-xs text-gray-500" x-text="activity.timestamp"></div>
+                            </div>
+                            <div class="text-sm font-semibold" 
+                                 :class="activity.score >= 80 ? 'text-green-600' : activity.score >= 60 ? 'text-yellow-600' : 'text-red-600'"
+                                 x-text="activity.score + '%'"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Available Exams Tab -->
+        <div x-show="activeTab === 'exams'" class="space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-semibold text-gray-800">Available Benchmark Exams</h2>
+                <button @click="loadExams()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Refresh Exams
+                </button>
+            </div>
+            
+            <!-- Exam Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="exam in exams" :key="exam.slug">
+                    <div class="exam-card glass-morphic rounded-lg p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800" x-text="exam.name"></h3>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full"
+                                  :class="getDifficultyColor(exam.difficulty)"
+                                  x-text="exam.difficulty"></span>
+                        </div>
+                        
+                        <p class="text-gray-600 text-sm mb-4" x-text="exam.description"></p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Category:</span>
+                                <span class="font-medium" x-text="exam.category"></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Questions:</span>
+                                <span class="font-medium" x-text="exam.task_count"></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Time Limit:</span>
+                                <span class="font-medium" x-text="(exam.timeout / 60) + ' min'"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button @click="showRunExamModal(exam)" 
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm rounded-lg transition-colors">
+                                Run Exam
+                            </button>
+                            <button @click="viewExamDetails(exam.slug)" 
+                                    class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Details
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Run Exam Modal -->
+        <div x-show="showRunModal" x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 modal-overlay">
+            <div class="glass-morphic rounded-lg p-6 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Run Exam</h3>
+                    <button @click="closeRunExamModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <h4 class="font-medium text-gray-800 mb-2" x-text="selectedExam?.name || 'Selected Exam'"></h4>
+                    <p class="text-sm text-gray-600 mb-4" x-text="selectedExam?.description || ''"></p>
+                    
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Category:</span>
+                            <span class="font-medium" x-text="selectedExam?.category || ''"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Questions:</span>
+                            <span class="font-medium" x-text="selectedExam?.task_count || ''"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Time Limit:</span>
+                            <span class="font-medium" x-text="selectedExam ? (selectedExam.timeout / 60) + ' min' : ''"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Agent</label>
+                    <select x-model="selectedAgentId" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Choose an agent...</option>
+                        <template x-for="agent in agents" :key="agent.id">
+                            <option :value="agent.id" x-text="agent.name + ' (' + agent.model + ')'"></option>
+                        </template>
+                    </select>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button @click="closeRunExamModal()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button @click="runExamWithAgent()" 
+                            :disabled="!selectedAgentId || isRunning"
+                            :class="{'opacity-50 cursor-not-allowed': !selectedAgentId || isRunning}"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                        <span x-show="!isRunning">Run Exam</span>
+                        <span x-show="isRunning" class="flex items-center">
+                            <svg class="running-indicator w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Running...
+                        </span>
+                    </button>
+                                 </div>
+             </div>
+         </div>
+
+         <!-- Results Modal -->
+         <div x-show="showResults" x-transition:enter="transition ease-out duration-300" 
+              x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in duration-200" 
+              x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+              class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 modal-overlay">
+             <div class="glass-morphic rounded-lg p-6 max-w-lg w-full mx-4">
+                 <div class="flex justify-between items-center mb-4">
+                     <h3 class="text-lg font-semibold text-gray-800">Exam Results</h3>
+                     <button @click="closeResultsModal()" class="text-gray-400 hover:text-gray-600">
+                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                         </svg>
+                     </button>
+                 </div>
+                 
+                 <div class="space-y-4">
+                     <div class="text-center">
+                         <div class="text-3xl font-bold mb-2" 
+                              :class="examResults.accuracy >= 0.8 ? 'text-green-600' : examResults.accuracy >= 0.6 ? 'text-yellow-600' : 'text-red-600'"
+                              x-text="examResults.accuracy ? (examResults.accuracy * 100).toFixed(1) + '%' : '0%'"></div>
+                         <div class="text-gray-600">Overall Accuracy</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-2 gap-4">
+                         <div class="text-center p-3 bg-gray-50 rounded-lg">
+                             <div class="text-lg font-semibold text-gray-800" x-text="examResults.total_score ? examResults.total_score.toFixed(1) : '0'"></div>
+                             <div class="text-sm text-gray-600">Total Score</div>
+                         </div>
+                         <div class="text-center p-3 bg-gray-50 rounded-lg">
+                             <div class="text-lg font-semibold text-gray-800" x-text="examResults.correct_answers + '/' + examResults.total_questions"></div>
+                             <div class="text-sm text-gray-600">Correct Answers</div>
+                         </div>
+                         <div class="text-center p-3 bg-gray-50 rounded-lg">
+                             <div class="text-lg font-semibold text-gray-800" x-text="examResults.avg_response_time ? examResults.avg_response_time.toFixed(1) + 's' : '0s'"></div>
+                             <div class="text-sm text-gray-600">Avg Response Time</div>
+                         </div>
+                         <div class="text-center p-3 bg-gray-50 rounded-lg">
+                             <div class="text-lg font-semibold text-gray-800" x-text="examResults.session_id ? examResults.session_id.substring(0, 8) + '...' : 'N/A'"></div>
+                             <div class="text-sm text-gray-600">Session ID</div>
+                         </div>
+                     </div>
+                     
+                     <div class="flex justify-center">
+                         <button @click="closeResultsModal()" 
+                                 class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                             Close
+                         </button>
+                     </div>
+                 </div>
+             </div>
+         </div>
+          
+         <!-- Results & Analytics Tab -->
+        <div x-show="activeTab === 'results'" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Performance Chart -->
+                <div class="glass-morphic rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Performance Trends</h3>
+                    <canvas id="performanceChart" width="400" height="200"></canvas>
+                </div>
+                
+                <!-- Category Breakdown -->
+                <div class="glass-morphic rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Category Performance</h3>
+                    <canvas id="categoryChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <!-- Detailed Results Table -->
+            <div class="glass-morphic rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Exam Sessions</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exam</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-for="result in examResults" :key="result.session_id">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="result.agent_name"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="result.exam_slug"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                              :class="result.accuracy >= 0.8 ? 'bg-green-100 text-green-800' : result.accuracy >= 0.6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'"
+                                              x-text="(result.accuracy * 100).toFixed(1) + '%'"></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="result.avg_response_time.toFixed(1) + 's'"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="formatDate(result.start_time)"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button @click="viewSessionDetails(result.session_id)" 
+                                                class="text-indigo-600 hover:text-indigo-900">View Details</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Exam Builder Tab -->
+        <div x-show="activeTab === 'builder'" class="space-y-6">
+            <div class="glass-morphic rounded-lg p-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Create New Benchmark Exam</h2>
+                
+                <form @submit.prevent="buildExam()" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <input type="text" x-model="examBuilder.subject" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="e.g., Mathematics, Physics, Computer Science">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                            <select x-model="examBuilder.difficulty" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Basic">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                                <option value="Expert">Expert</option>
+                                <option value="College Level">College Level</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
+                            <input type="number" x-model="examBuilder.num_questions" min="1" max="50"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
+                            <input type="number" x-model="examBuilder.time_limit" min="5" max="180"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea x-model="examBuilder.description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Describe the purpose and scope of this exam"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Target Skills (comma-separated)</label>
+                        <input type="text" x-model="examBuilder.target_skills" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="e.g., problem solving, critical thinking, analysis">
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" 
+                                :disabled="isBuilding"
+                                class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg transition-colors">
+                            <span x-show="!isBuilding">Create Exam</span>
+                            <span x-show="isBuilding">Creating...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Leaderboard Tab -->
+        <div x-show="activeTab === 'leaderboard'" class="space-y-6">
+            <div class="glass-morphic rounded-lg p-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Agent Performance Leaderboard</h2>
+                
+                <div class="space-y-4">
+                    <template x-for="(agent, index) in leaderboard" :key="agent.agent_id">
+                        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                                 :class="index === 0 ? 'bg-yellow-500 text-white' : index === 1 ? 'bg-gray-400 text-white' : index === 2 ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'">
+                                <span x-text="index + 1"></span>
+                            </div>
+                            
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-900" x-text="agent.agent_name"></div>
+                                <div class="text-sm text-gray-500" x-text="agent.provider + ' - ' + agent.model"></div>
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="font-semibold text-gray-900" x-text="(agent.avg_accuracy * 100).toFixed(1) + '%'"></div>
+                                <div class="text-sm text-gray-500" x-text="agent.total_exams + ' exams'"></div>
+                            </div>
+                            
+                            <div class="w-16 h-16">
+                                <svg class="progress-ring w-16 h-16" width="64" height="64">
+                                    <circle class="progress-ring-circle" 
+                                            stroke="#e5e7eb" 
+                                            stroke-width="4" 
+                                            fill="transparent" 
+                                            r="28" 
+                                            cx="32" 
+                                            cy="32"/>
+                                    <circle class="progress-ring-circle" 
+                                            :stroke="agent.avg_accuracy >= 0.8 ? '#10b981' : agent.avg_accuracy >= 0.6 ? '#f59e0b' : '#ef4444'"
+                                            stroke-width="4" 
+                                            fill="transparent" 
+                                            r="28" 
+                                            cx="32" 
+                                            cy="32"
+                                            :stroke-dasharray="175.9 + ' ' + (175.9 * (1 - agent.avg_accuracy))"
+                                            stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Overlay -->
+        <div x-show="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="glass-morphic rounded-lg p-8 text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div class="text-gray-700">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function benchmarkDashboard() {
+            return {
+                activeTab: 'overview',
+                isLoading: false,
+                isBuilding: false,
+                isRunning: false,
+                showRunModal: false,
+                showResults: false,
+                selectedExam: null,
+                selectedAgentId: '',
+                examResults: {},
+                stats: {
+                    totalExams: 0,
+                    totalSessions: 0,
+                    avgAccuracy: 0,
+                    activeAgents: 0
+                },
+                exams: [],
+                agents: [],
+                examResults: [],
+                leaderboard: [],
+                recentActivity: [],
+                examBuilder: {
+                    subject: '',
+                    difficulty: 'Intermediate',
+                    num_questions: 10,
+                    time_limit: 30,
+                    description: '',
+                    target_skills: ''
+                },
+                
+                async init() {
+                    await this.loadStats();
+                    await this.loadExams();
+                    await this.loadAgents();
+                    await this.loadRecentActivity();
+                    this.initCharts();
+                },
+                
+                async loadStats() {
+                    try {
+                        const response = await fetch('/api/exams/available');
+                        const data = await response.json();
+                        this.stats.totalExams = data.count || 0;
+                        
+                        // Load more stats from various endpoints
+                        const leaderboardResponse = await fetch('/api/benchmark/leaderboard');
+                        const leaderboardData = await leaderboardResponse.json();
+                        this.stats.activeAgents = leaderboardData.length || 0;
+                        
+                        if (leaderboardData.length > 0) {
+                            this.stats.avgAccuracy = leaderboardData.reduce((sum, agent) => sum + (agent.avg_score || 0), 0) / leaderboardData.length / 100;
+                        }
+                    } catch (error) {
+                        console.error('Error loading stats:', error);
+                    }
+                },
+                
+                async loadExams() {
+                    this.isLoading = true;
+                    try {
+                        const response = await fetch('/api/exams/available');
+                        const data = await response.json();
+                        this.exams = Object.entries(data.exams || {}).map(([slug, exam]) => ({
+                            slug,
+                            ...exam
+                        }));
+                    } catch (error) {
+                        console.error('Error loading exams:', error);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async loadAgents() {
+                    try {
+                        const response = await fetch('/api/agents');
+                        const data = await response.json();
+                        this.agents = data.agents || [];
+                    } catch (error) {
+                        console.error('Error loading agents:', error);
+                    }
+                },
+                
+                async loadRecentActivity() {
+                    try {
+                        const response = await fetch('/api/benchmark/history/latest?limit=5');
+                        const data = await response.json();
+                        this.recentActivity = (data.results || []).map(result => ({
+                            id: result.id,
+                            description: `Agent ran ${result.test_type} benchmark`,
+                            timestamp: this.formatDate(result.timestamp),
+                            score: Math.round(result.score * 100)
+                        }));
+                    } catch (error) {
+                        console.error('Error loading recent activity:', error);
+                    }
+                },
+                
+                async buildExam() {
+                    this.isBuilding = true;
+                    try {
+                        const response = await fetch('/api/exams/build', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                subject: this.examBuilder.subject,
+                                difficulty: this.examBuilder.difficulty,
+                                num_questions: parseInt(this.examBuilder.num_questions),
+                                time_limit: parseInt(this.examBuilder.time_limit) * 60,
+                                description: this.examBuilder.description,
+                                target_skills: this.examBuilder.target_skills.split(',').map(s => s.trim()).filter(s => s)
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            alert(`Exam "${data.name}" created successfully!`);
+                            this.resetExamBuilder();
+                            await this.loadExams();
+                        } else {
+                            throw new Error('Failed to create exam');
+                        }
+                    } catch (error) {
+                        console.error('Error building exam:', error);
+                        alert('Error creating exam. Please try again.');
+                    } finally {
+                        this.isBuilding = false;
+                    }
+                },
+                
+                resetExamBuilder() {
+                    this.examBuilder = {
+                        subject: '',
+                        difficulty: 'Intermediate',
+                        num_questions: 10,
+                        time_limit: 30,
+                        description: '',
+                        target_skills: ''
+                    };
+                },
+                
+                getDifficultyColor(difficulty) {
+                    const colors = {
+                        'Basic': 'bg-green-100 text-green-800',
+                        'Intermediate': 'bg-blue-100 text-blue-800',
+                        'Advanced': 'bg-orange-100 text-orange-800',
+                        'Expert': 'bg-red-100 text-red-800',
+                        'College Level': 'bg-purple-100 text-purple-800'
+                    };
+                    return colors[difficulty] || 'bg-gray-100 text-gray-800';
+                },
+                
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+                
+                showRunExamModal(exam) {
+                    this.selectedExam = exam;
+                    this.selectedAgentId = '';
+                    this.showRunModal = true;
+                },
+
+                closeRunExamModal() {
+                    this.showRunModal = false;
+                    this.selectedExam = null;
+                    this.selectedAgentId = '';
+                },
+
+                closeResultsModal() {
+                    this.showResults = false;
+                    this.examResults = {};
+                },
+
+                async runExamWithAgent() {
+                    if (!this.selectedAgentId || !this.selectedExam) return;
+                    
+                    this.isRunning = true;
+                    try {
+                        const response = await fetch('/api/exams/run', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                exam_slug: this.selectedExam.slug,
+                                agent_id: parseInt(this.selectedAgentId)
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.closeRunExamModal();
+                            
+                            // Show results in modal
+                            this.examResults = data;
+                            this.showResults = true;
+                            
+                            // Refresh recent activity
+                            await this.loadRecentActivity();
+                            await this.loadStats();
+                        } else {
+                            const error = await response.json();
+                            throw new Error(error.detail || 'Failed to run exam');
+                        }
+                    } catch (error) {
+                        console.error('Error running exam:', error);
+                        alert(`Error running exam: ${error.message}`);
+                    } finally {
+                        this.isRunning = false;
+                    }
+                },
+                
+                async viewExamDetails(examSlug) {
+                    alert(`Viewing details for: ${examSlug}`);
+                },
+                
+                async viewSessionDetails(sessionId) {
+                    alert(`Viewing session: ${sessionId}`);
+                },
+                
+                initCharts() {
+                    // Initialize Chart.js charts
+                    setTimeout(() => {
+                        this.createPerformanceChart();
+                        this.createCategoryChart();
+                    }, 100);
+                },
+                
+                createPerformanceChart() {
+                    const ctx = document.getElementById('performanceChart');
+                    if (!ctx) return;
+                    
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                            datasets: [{
+                                label: 'Average Accuracy',
+                                data: [75, 78, 82, 85, 88, 90],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                createCategoryChart() {
+                    const ctx = document.getElementById('categoryChart');
+                    if (!ctx) return;
+                    
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Mathematics', 'Science', 'Logic', 'Language'],
+                            datasets: [{
+                                data: [85, 78, 92, 80],
+                                backgroundColor: [
+                                    'rgb(59, 130, 246)',
+                                    'rgb(16, 185, 129)',
+                                    'rgb(245, 158, 11)',
+                                    'rgb(139, 92, 246)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

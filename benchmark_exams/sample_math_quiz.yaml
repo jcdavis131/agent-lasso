@@ -1,0 +1,16 @@
+slug: math_quiz
+name: Simple Math Quiz
+description: Quick arithmetic questions to test basic reasoning.
+tasks:
+  - id: addition
+    prompt: "What is 12 + 30?"
+    answer: "42"
+    eval: equals
+  - id: prime_check
+    prompt: "Is 19 a prime number? Answer yes or no."
+    answer: "yes"
+    eval: contains
+  - id: sequence
+    prompt: "Continue the sequence: 2, 4, 8, 16, ?"
+    answer: "32"
+    eval: contains 

@@ -1,0 +1,97 @@
+slug: winogrande_reasoning
+name: "WinoGrande Pronoun Resolution"
+description: "Commonsense reasoning benchmark focusing on pronoun resolution requiring world knowledge and contextual understanding"
+timeout: 600
+source: "Based on WinoGrande dataset (Sakaguchi et al., 2019)"
+category: "Language Understanding"
+difficulty: "Intermediate"
+tasks:
+  - id: pronoun_resolution_1
+    prompt: "The trophy doesn't fit in the brown suitcase because it is too big. What does 'it' refer to? (A) The trophy (B) The suitcase"
+    answer: "A"
+    eval: equals
+    explanation: "If something doesn't fit because 'it' is too big, 'it' refers to the thing being put in (the trophy), not the container."
+    
+  - id: pronoun_resolution_2
+    prompt: "The trophy doesn't fit in the brown suitcase because it is too small. What does 'it' refer to? (A) The trophy (B) The suitcase"
+    answer: "B"
+    eval: equals
+    explanation: "If something doesn't fit because 'it' is too small, 'it' refers to the container (the suitcase), not the object being put in."
+    
+  - id: pronoun_resolution_3
+    prompt: "John couldn't see the stage with Billy in front of him because he is so tall. Who is tall? (A) John (B) Billy"
+    answer: "B"
+    eval: equals
+    explanation: "If Billy is in front and blocking John's view because of height, Billy must be the tall one."
+    
+  - id: pronoun_resolution_4
+    prompt: "John couldn't see the stage with Billy in front of him because he is so short. Who is short? (A) John (B) Billy"
+    answer: "A"
+    eval: equals
+    explanation: "If John can't see over Billy, then John must be shorter than Billy, making John the short one."
+    
+  - id: pronoun_resolution_5
+    prompt: "The city councilmen refused the demonstrators a permit because they feared violence. Who feared violence? (A) The city councilmen (B) The demonstrators"
+    answer: "A"
+    eval: equals
+    explanation: "The councilmen refused the permit, so they (the councilmen) were the ones who feared violence."
+    
+  - id: pronoun_resolution_6
+    prompt: "The city councilmen refused the demonstrators a permit because they advocated violence. Who advocated violence? (A) The city councilmen (B) The demonstrators"
+    answer: "B"
+    eval: equals
+    explanation: "The permit was refused because 'they' advocated violence, referring to the demonstrators as the reason for refusal."
+    
+  - id: pronoun_resolution_7
+    prompt: "The delivery truck couldn't make it up the hill because it was too steep. What was too steep? (A) The delivery truck (B) The hill"
+    answer: "B"
+    eval: equals
+    explanation: "Hills are steep, not trucks. The truck couldn't make it up because the hill was too steep."
+    
+  - id: pronoun_resolution_8
+    prompt: "The delivery truck couldn't make it up the hill because it was too heavy. What was too heavy? (A) The delivery truck (B) The hill"
+    answer: "A"
+    eval: equals
+    explanation: "The truck couldn't make it up because it (the truck) was too heavy to climb the hill."
+    
+  - id: pronoun_resolution_9
+    prompt: "The women stopped taking the pills because they were pregnant. Who was pregnant? (A) The women (B) The pills"
+    answer: "A"
+    eval: equals
+    explanation: "Pills cannot be pregnant. The women stopped taking pills because they (the women) were pregnant."
+    
+  - id: pronoun_resolution_10
+    prompt: "The women stopped taking the pills because they were harmful. What was harmful? (A) The women (B) The pills"
+    answer: "B"
+    eval: equals
+    explanation: "The women stopped because the pills were harmful, so 'they' refers to the pills."
+    
+  - id: pronoun_resolution_11
+    prompt: "The painting didn't fit on the wall because it was too wide. What was too wide? (A) The painting (B) The wall"
+    answer: "A"
+    eval: equals
+    explanation: "If something doesn't fit because 'it' is too wide, the object being placed (painting) is too wide for the space."
+    
+  - id: pronoun_resolution_12
+    prompt: "The painting didn't fit on the wall because it was too narrow. What was too narrow? (A) The painting (B) The wall"
+    answer: "B"
+    eval: equals
+    explanation: "If the painting doesn't fit because 'it' is too narrow, the wall space is too narrow for the painting."
+    
+  - id: pronoun_resolution_13
+    prompt: "The farmer killed the chickens for meat because they were hungry. Who was hungry? (A) The farmer (B) The chickens"
+    answer: "A"
+    eval: equals
+    explanation: "The farmer killed the chickens because he (the farmer) was hungry, not because the chickens were hungry."
+    
+  - id: pronoun_resolution_14
+    prompt: "The farmer fed the chickens corn because they were hungry. Who was hungry? (A) The farmer (B) The chickens"
+    answer: "B"
+    eval: equals
+    explanation: "The farmer fed the chickens because they (the chickens) were hungry and needed food."
+    
+  - id: pronoun_resolution_15
+    prompt: "The students asked the teachers for help because they were confused. Who was confused? (A) The students (B) The teachers"
+    answer: "A"
+    eval: equals
+    explanation: "Students ask for help when they (the students) are confused and need clarification." 

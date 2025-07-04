@@ -1,0 +1,79 @@
+slug: arc_challenge
+name: "ARC Challenge"
+description: "AI2 Reasoning Challenge - Advanced questions requiring complex scientific reasoning and world knowledge"
+timeout: 1200
+source: "Based on ARC dataset (Clark et al., 2018)"
+category: "Scientific Reasoning"
+difficulty: "Advanced"
+tasks:
+  - id: physics_reasoning_1
+    prompt: "A ball is thrown upward. At the highest point of its trajectory, which of the following is true? (A) Velocity is maximum, acceleration is zero (B) Velocity is zero, acceleration is 9.8 m/s² downward (C) Both velocity and acceleration are zero (D) Velocity is zero, acceleration is 9.8 m/s² upward"
+    answer: "B"
+    eval: equals
+    explanation: "At the highest point, the ball momentarily stops (velocity = 0) but gravity continues to act downward with acceleration = 9.8 m/s²"
+    
+  - id: chemistry_reasoning_1
+    prompt: "Which process best explains why a sugar cube dissolves faster in hot water than in cold water? (A) Hot water has larger molecules (B) Increased kinetic energy increases molecular motion and collision frequency (C) Hot water has a different chemical composition (D) Sugar changes its chemical structure in hot water"
+    answer: "B"
+    eval: equals
+    explanation: "Higher temperature increases molecular kinetic energy, leading to more frequent and energetic collisions between water and sugar molecules, accelerating dissolution"
+    
+  - id: biology_reasoning_1
+    prompt: "Why do polar bears have black skin under their white fur? (A) To scare predators (B) To absorb and retain solar heat more efficiently (C) To blend in with rocks (D) It's a evolutionary accident with no function"
+    answer: "B"
+    eval: equals
+    explanation: "Black skin absorbs more solar radiation (heat) than white skin, helping polar bears maintain body temperature in their cold Arctic environment"
+    
+  - id: earth_science_1
+    prompt: "What causes ocean tides to be higher during a new moon or full moon? (A) The moon is closer to Earth (B) Gravitational forces of the sun and moon align and combine (C) Ocean currents are stronger (D) Earth's rotation is faster"
+    answer: "B"
+    eval: equals
+    explanation: "During new and full moons, the sun, Earth, and moon are aligned, so their gravitational forces combine to create stronger tidal effects (spring tides)"
+    
+  - id: scientific_method_1
+    prompt: "A scientist observes that plants grow taller when played classical music. What should be the scientist's next step? (A) Publish the results immediately (B) Design a controlled experiment with multiple variables (C) Play more music to more plants (D) Design a controlled experiment testing only the music variable"
+    answer: "D"
+    eval: equals
+    explanation: "Good scientific methodology requires controlling all variables except the one being tested (music) to determine true causation"
+    
+  - id: physics_reasoning_2
+    prompt: "Why does a helium balloon float in air? (A) Helium is lighter than air (B) Helium molecules are smaller than air molecules (C) The density of helium is less than the density of air (D) Helium repels gravity"
+    answer: "C"
+    eval: equals
+    explanation: "Buoyancy is determined by density differences. Helium is less dense than air, so the buoyant force exceeds the weight of the helium balloon"
+    
+  - id: astronomy_reasoning_1
+    prompt: "Why do stars appear to twinkle while planets appear as steady points of light? (A) Stars are farther away (B) Atmospheric turbulence affects point sources more than extended sources (C) Stars emit their own light (D) Planets are brighter than stars"
+    answer: "B"
+    eval: equals
+    explanation: "Stars appear as point sources due to distance, making them more susceptible to atmospheric disturbance. Planets appear as small disks, averaging out atmospheric effects"
+    
+  - id: energy_reasoning_1
+    prompt: "A pendulum swings back and forth. At which point does it have maximum kinetic energy? (A) At the highest points of the swing (B) At the lowest point of the swing (C) Halfway between highest and lowest points (D) Kinetic energy remains constant"
+    answer: "B"
+    eval: equals
+    explanation: "At the lowest point, all potential energy has been converted to kinetic energy, and the pendulum is moving fastest"
+    
+  - id: ecology_reasoning_1
+    prompt: "What would most likely happen to a food web if the primary producers were suddenly removed? (A) Secondary consumers would increase (B) Decomposers would take over their role (C) The entire food web would collapse (D) Primary consumers would evolve to photosynthesize"
+    answer: "C"
+    eval: equals
+    explanation: "Primary producers (plants) form the base of all food webs. Their removal would eliminate the energy source for all other trophic levels, causing ecosystem collapse"
+    
+  - id: material_science_1
+    prompt: "Why does metal feel colder than wood at room temperature? (A) Metal has a lower temperature (B) Metal has higher thermal conductivity (C) Wood is a better insulator (D) Both B and C are correct"
+    answer: "D"
+    eval: equals
+    explanation: "Metal conducts heat more efficiently than wood, so it draws heat away from your skin faster, making it feel colder. Wood's insulating properties mean less heat transfer"
+    
+  - id: genetics_reasoning_1
+    prompt: "If two heterozygous brown-eyed parents (Bb) have children, what percentage of their offspring will likely have blue eyes (bb)? (A) 0% (B) 25% (C) 50% (D) 75%"
+    answer: "B"
+    eval: equals
+    explanation: "Bb × Bb cross produces: BB (25%), Bb (50%), bb (25%). Only bb genotype results in blue eyes (recessive trait)"
+    
+  - id: environmental_science_1
+    prompt: "What is the primary reason why CFCs (chlorofluorocarbons) were banned in aerosols? (A) They cause acid rain (B) They deplete the ozone layer (C) They increase greenhouse effect (D) They are toxic to humans"
+    answer: "B"
+    eval: equals
+    explanation: "CFCs release chlorine atoms in the stratosphere, which catalytically destroy ozone molecules, creating the ozone hole and reducing UV protection" 

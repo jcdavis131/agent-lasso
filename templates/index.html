@@ -153,6 +153,22 @@
             max-width: 80%;
             margin-right: auto;
         }
+        .benchmark-tab {
+            color: #9ca3af;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .benchmark-tab.active {
+            color: #ffffff;
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
+        .benchmark-tab-content {
+            display: block;
+        }
+        .benchmark-tab-content.hidden {
+            display: none;
+        }
         .header-drawer {
             position: fixed;
             top: 0;
@@ -929,52 +945,195 @@
         <!-- Benchmark Section -->
         <div id="benchmark" class="section">
             <div class="max-w-6xl mx-auto">
-                <h2 class="text-3xl font-bold mb-8 text-center">Agent Benchmarking</h2>
+                <h2 class="text-3xl font-bold mb-8 text-center">Agent Benchmarking Center</h2>
                 
-                <!-- Test Controls -->
-                <div class="glass-card p-6 mb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block mb-2 font-semibold">Select Agent:</label>
-                            <select id="benchmark-agent-select" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
-                                <option value="">Choose an agent...</option>
-                            </select>
+                <!-- Tab Navigation -->
+                <div class="flex justify-center mb-8">
+                    <div class="glass-card p-1 flex space-x-1">
+                        <button onclick="showBenchmarkTab('overview')" class="benchmark-tab active px-4 py-2 rounded-md transition-all">
+                            <i class="fas fa-chart-line mr-2"></i>Overview
+                        </button>
+                        <button onclick="showBenchmarkTab('available-exams')" class="benchmark-tab px-4 py-2 rounded-md transition-all">
+                            <i class="fas fa-list mr-2"></i>Available Exams
+                        </button>
+                        <button onclick="showBenchmarkTab('exam-builder')" class="benchmark-tab px-4 py-2 rounded-md transition-all">
+                            <i class="fas fa-wrench mr-2"></i>Exam Builder
+                        </button>
+                        <button onclick="showBenchmarkTab('analytics')" class="benchmark-tab px-4 py-2 rounded-md transition-all">
+                            <i class="fas fa-chart-bar mr-2"></i>Analytics
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Overview Tab -->
+                <div id="benchmark-overview" class="benchmark-tab-content">
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="glass-card p-4 text-center">
+                            <div class="text-2xl font-bold text-blue-400" id="stats-total-exams">0</div>
+                            <div class="text-sm text-gray-400">Total Exams</div>
                         </div>
-                        
-                        <div>
-                            <label class="block mb-2 font-semibold">Test Type:</label>
-                            <select id="test-type-select" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
-                                <option value="response_time">Response Time</option>
-                                <option value="accuracy">Accuracy Test</option>
-                            </select>
+                        <div class="glass-card p-4 text-center">
+                            <div class="text-2xl font-bold text-green-400" id="stats-total-sessions">0</div>
+                            <div class="text-sm text-gray-400">Total Sessions</div>
                         </div>
-                        
-                        <div class="flex items-end">
-                            <button onclick="runBenchmark()" class="w-full bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg transition-colors">
-                                <i class="fas fa-play mr-2"></i>Run Test
+                        <div class="glass-card p-4 text-center">
+                            <div class="text-2xl font-bold text-purple-400" id="stats-avg-accuracy">0%</div>
+                            <div class="text-sm text-gray-400">Avg Accuracy</div>
+                        </div>
+                        <div class="glass-card p-4 text-center">
+                            <div class="text-2xl font-bold text-yellow-400" id="stats-active-agents">0</div>
+                            <div class="text-sm text-gray-400">Active Agents</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Run -->
+                    <div class="glass-card p-6 mb-6">
+                        <h3 class="text-xl font-semibold mb-4">Quick Exam Run</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block mb-2 font-semibold">Agent:</label>
+                                <select id="benchmark-agent-select" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                    <option value="">Choose an agent...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Exam:</label>
+                                <select id="benchmark-exam-select" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                    <option value="">Choose an exam...</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="runQuickExam()" class="w-full bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg transition-colors">
+                                    <i class="fas fa-play mr-2"></i>Run Exam
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Access to Full Dashboard -->
+                    <div class="glass-card p-6 mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-semibold">Full Benchmark Dashboard</h3>
+                                <p class="text-gray-400 mt-1">Access comprehensive exam management, results analysis, and advanced features</p>
+                            </div>
+                            <button onclick="window.open('/benchmark_dashboard', '_blank')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg transition-colors">
+                                <i class="fas fa-external-link-alt mr-2"></i>Open Dashboard
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-semibold mb-4">Recent Test Results</h3>
+                            <div id="recent-test-results">
+                                <div class="text-center text-gray-400 py-8">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Loading...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-semibold mb-4">Top Performers</h3>
+                            <div id="top-performers">
+                                <div class="text-center text-gray-400 py-8">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Loading...
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Test Results -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Current Test -->
-                    <div class="glass-card p-6">
-                        <h3 class="text-xl font-semibold mb-4">Current Test</h3>
-                        <div id="current-test-results">
+                <!-- Available Exams Tab -->
+                <div id="benchmark-available-exams" class="benchmark-tab-content hidden">
+                    <div class="glass-card p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Available Benchmark Exams</h3>
+                            <button onclick="loadAvailableExams()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-refresh mr-2"></i>Refresh
+                            </button>
+                        </div>
+                        <div id="available-exams-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="text-center text-gray-400 py-8">
-                                No test running
+                                <i class="fas fa-spinner fa-spin mr-2"></i>Loading exams...
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Test History -->
+                </div>
+
+                <!-- Exam Builder Tab -->
+                <div id="benchmark-exam-builder" class="benchmark-tab-content hidden">
                     <div class="glass-card p-6">
-                        <h3 class="text-xl font-semibold mb-4">Test History</h3>
-                        <div id="test-history">
-                            <div class="text-center text-gray-400 py-8">
-                                No test history
+                        <h3 class="text-xl font-semibold mb-4">Create New Exam</h3>
+                        <form id="exam-builder-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block mb-2 font-semibold">Subject:</label>
+                                    <input type="text" id="exam-subject" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none" placeholder="e.g., Mathematics, Science, Logic">
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold">Difficulty:</label>
+                                    <select id="exam-difficulty" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                        <option value="Basic">Basic</option>
+                                        <option value="Intermediate" selected>Intermediate</option>
+                                        <option value="Advanced">Advanced</option>
+                                        <option value="Expert">Expert</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block mb-2 font-semibold">Number of Questions:</label>
+                                    <input type="number" id="exam-num-questions" value="10" min="1" max="50" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold">Time Limit (minutes):</label>
+                                    <input type="number" id="exam-time-limit" value="30" min="5" max="180" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Description:</label>
+                                <textarea id="exam-description" rows="3" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none" placeholder="Describe what this exam tests..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Target Skills (comma-separated):</label>
+                                <input type="text" id="exam-target-skills" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-600 focus:border-blue-500 focus:outline-none" placeholder="e.g., problem-solving, logical reasoning, mathematical computation">
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg transition-colors">
+                                    <i class="fas fa-magic mr-2"></i>Generate Exam
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="exam-generation-progress" class="glass-card p-6 mt-6 hidden">
+                        <h3 class="text-xl font-semibold mb-4">Generation Progress</h3>
+                        <div class="progress-indicator">
+                            <div class="progress-spinner"></div>
+                            <span id="generation-status">Generating exam...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="benchmark-analytics" class="benchmark-tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-semibold mb-4">Performance Analytics</h3>
+                            <div id="performance-analytics">
+                                <div class="text-center text-gray-400 py-8">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Loading analytics...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-semibold mb-4">Exam Leaderboard</h3>
+                            <div id="exam-leaderboard">
+                                <div class="text-center text-gray-400 py-8">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Loading leaderboard...
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1615,6 +1774,367 @@
         }
 
         // Benchmark functionality
+        let currentBenchmarkTab = 'overview';
+        
+        function showBenchmarkTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.benchmark-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.benchmark-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(`benchmark-${tabName}`).classList.remove('hidden');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            currentBenchmarkTab = tabName;
+            
+            // Load data for the selected tab
+            switch(tabName) {
+                case 'overview':
+                    loadBenchmarkOverview();
+                    break;
+                case 'available-exams':
+                    loadAvailableExams();
+                    break;
+                case 'analytics':
+                    loadBenchmarkAnalytics();
+                    break;
+            }
+        }
+        
+        async function loadBenchmarkOverview() {
+            try {
+                // Load stats
+                const [examsResponse, leaderboardResponse] = await Promise.all([
+                    fetch('/api/exams/available'),
+                    fetch('/api/benchmark/leaderboard')
+                ]);
+                
+                const examsData = await examsResponse.json();
+                const leaderboardData = await leaderboardResponse.json();
+                
+                // Update stats
+                document.getElementById('stats-total-exams').textContent = examsData.count || 0;
+                document.getElementById('stats-active-agents').textContent = (leaderboardData.leaderboard || []).length || 0;
+                
+                if (leaderboardData.leaderboard && leaderboardData.leaderboard.length > 0) {
+                    const avgAccuracy = leaderboardData.leaderboard.reduce((sum, agent) => sum + (agent.avg_score || 0), 0) / leaderboardData.leaderboard.length;
+                    document.getElementById('stats-avg-accuracy').textContent = Math.round(avgAccuracy) + '%';
+                }
+                
+                // Load agents and exams for quick test
+                await loadBenchmarkAgents();
+                await loadExamOptions();
+                
+                // Load recent results
+                await loadRecentTestResults();
+                await loadTopPerformers();
+                
+            } catch (error) {
+                console.error('Failed to load benchmark overview', error);
+            }
+        }
+        
+        async function loadExamOptions() {
+            try {
+                const response = await fetch('/api/exams/available');
+                const data = await response.json();
+                const select = document.getElementById('benchmark-exam-select');
+                select.innerHTML = '<option value="">Choose an exam...</option>';
+                
+                Object.entries(data.exams || {}).forEach(([slug, exam]) => {
+                    const option = document.createElement('option');
+                    option.value = slug;
+                    option.textContent = exam.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load exam options', error);
+            }
+        }
+        
+        async function loadAvailableExams() {
+            try {
+                const response = await fetch('/api/exams/available');
+                const data = await response.json();
+                const grid = document.getElementById('available-exams-grid');
+                
+                if (!data.exams || Object.keys(data.exams).length === 0) {
+                    grid.innerHTML = '<div class="text-center text-gray-400 py-8">No exams available</div>';
+                    return;
+                }
+                
+                const examsHtml = Object.entries(data.exams).map(([slug, exam]) => `
+                    <div class="glass-card p-4 hover:bg-gray-800 transition-colors">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="text-lg font-semibold">${exam.name}</h4>
+                            <span class="px-2 py-1 bg-blue-900 rounded text-xs">${exam.difficulty}</span>
+                        </div>
+                        <p class="text-gray-400 text-sm mb-3">${exam.description}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">${exam.task_count} questions</span>
+                            <button onclick="runExam('${slug}')" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-sm">
+                                <i class="fas fa-play mr-1"></i>Run
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                grid.innerHTML = examsHtml;
+            } catch (error) {
+                console.error('Failed to load available exams', error);
+            }
+        }
+        
+        async function runExam(examSlug) {
+            const agentId = document.getElementById('benchmark-agent-select').value;
+            if (!agentId) {
+                showToast('Please select an agent first', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/exams/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ exam_slug: examSlug, agent_id: parseInt(agentId) })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast(`Exam completed! Score: ${Math.round(result.accuracy * 100)}%`, 'success');
+                    loadBenchmarkOverview(); // Refresh overview data
+                } else {
+                    showToast(result.detail || 'Failed to run exam', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to run exam', error);
+                showToast('Error running exam: ' + error.message, 'error');
+            }
+        }
+        
+        async function loadRecentTestResults() {
+            try {
+                const response = await fetch('/api/benchmark/history/latest?limit=5');
+                const data = await response.json();
+                const container = document.getElementById('recent-test-results');
+                
+                if (!data.results || data.results.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-400 py-4">No recent test results</div>';
+                    return;
+                }
+                
+                const resultsHtml = data.results.map(result => `
+                    <div class="p-3 border-b border-gray-700 last:border-b-0">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">${result.test_type}</span>
+                            <span class="text-sm text-gray-400">${new Date(result.timestamp).toLocaleDateString()}</span>
+                        </div>
+                        <div class="text-sm text-gray-400">Score: ${Math.round(result.score * 100)}%</div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = resultsHtml;
+            } catch (error) {
+                console.error('Failed to load recent test results', error);
+            }
+        }
+        
+        async function loadTopPerformers() {
+            try {
+                const response = await fetch('/api/benchmark/leaderboard?limit=5');
+                const data = await response.json();
+                const container = document.getElementById('top-performers');
+                
+                if (!data || !data.leaderboard || data.leaderboard.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-400 py-4">No performance data available</div>';
+                    return;
+                }
+                
+                const performersHtml = data.leaderboard.map((agent, index) => `
+                    <div class="flex items-center justify-between p-3 border-b border-gray-700 last:border-b-0">
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs mr-3">
+                                ${index + 1}
+                            </span>
+                            <span class="font-medium">${agent.name}</span>
+                        </div>
+                        <span class="text-sm text-green-400">${Math.round(agent.avg_score)}%</span>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = performersHtml;
+            } catch (error) {
+                console.error('Failed to load top performers', error);
+            }
+        }
+        
+        async function loadBenchmarkAnalytics() {
+            try {
+                const [analyticsResponse, leaderboardResponse] = await Promise.all([
+                    fetch('/api/benchmark/history/latest?limit=10'),
+                    fetch('/api/benchmark/leaderboard?limit=10')
+                ]);
+                
+                const analyticsData = await analyticsResponse.json();
+                const leaderboardData = await leaderboardResponse.json();
+                
+                // Update analytics display
+                const analyticsContainer = document.getElementById('performance-analytics');
+                if (analyticsData.results && analyticsData.results.length > 0) {
+                    const avgScore = analyticsData.results.reduce((sum, result) => sum + result.score, 0) / analyticsData.results.length;
+                    analyticsContainer.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Average Score:</span>
+                                <span class="font-semibold">${Math.round(avgScore * 100)}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Total Tests:</span>
+                                <span class="font-semibold">${analyticsData.results.length}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Best Score:</span>
+                                <span class="font-semibold text-green-400">${Math.round(Math.max(...analyticsData.results.map(r => r.score)) * 100)}%</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    analyticsContainer.innerHTML = '<div class="text-center text-gray-400">No analytics data available</div>';
+                }
+                
+                // Update leaderboard display
+                const leaderboardContainer = document.getElementById('exam-leaderboard');
+                if (leaderboardData && leaderboardData.length > 0) {
+                    const leaderboardHtml = leaderboardData.map((agent, index) => `
+                        <div class="flex items-center justify-between p-3 border-b border-gray-700 last:border-b-0">
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-sm font-bold mr-3">
+                                    ${index + 1}
+                                </span>
+                                <div>
+                                    <div class="font-medium">${agent.name}</div>
+                                    <div class="text-xs text-gray-400">${agent.total_tests} tests</div>
+                                </div>
+                            </div>
+                            <span class="text-lg font-bold text-green-400">${Math.round(agent.avg_score)}%</span>
+                        </div>
+                    `).join('');
+                    
+                    leaderboardContainer.innerHTML = leaderboardHtml;
+                } else {
+                    leaderboardContainer.innerHTML = '<div class="text-center text-gray-400">No leaderboard data available</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load benchmark analytics', error);
+            }
+        }
+        
+        // Quick exam functionality
+        async function runQuickExam() {
+            const agentId = document.getElementById('benchmark-agent-select').value;
+            const examSlug = document.getElementById('benchmark-exam-select').value;
+            
+            if (!agentId) {
+                showToast('Please select an agent', 'error');
+                return;
+            }
+            
+            if (!examSlug) {
+                showToast('Please select an exam', 'error');
+                return;
+            }
+            
+            // Run the exam
+            await runExamWithAgentId(examSlug, agentId);
+        }
+
+        async function runExamWithAgentId(examSlug, agentId) {
+            // Show loading state
+            document.getElementById('current-test-results').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-4"></i>
+                    <div>Running exam...</div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/exams/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        exam_slug: examSlug,
+                        agent_id: parseInt(agentId)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayExamResult(result);
+                    showToast('Exam completed successfully!');
+                    
+                    // Refresh history list
+                    loadBenchmarkHistory(agentId);
+                } else {
+                    showToast(result.detail || 'Error running exam', 'error');
+                    document.getElementById('current-test-results').innerHTML = 
+                        '<div class="text-center text-red-400 py-8">Exam failed</div>';
+                }
+            } catch (error) {
+                showToast('Error running exam: ' + error.message, 'error');
+                document.getElementById('current-test-results').innerHTML = 
+                    '<div class="text-center text-red-400 py-8">Exam failed</div>';
+            }
+        }
+
+        function displayExamResult(result) {
+            const container = document.getElementById('current-test-results');
+            
+            // Determine color class based on accuracy
+            let accuracyColorClass = 'text-red-400';
+            if (result.accuracy >= 0.8) {
+                accuracyColorClass = 'text-green-400';
+            } else if (result.accuracy >= 0.6) {
+                accuracyColorClass = 'text-yellow-400';
+            }
+            
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold ${accuracyColorClass}">${(result.accuracy * 100).toFixed(1)}%</div>
+                        <div class="text-gray-400">Overall Accuracy</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-gray-800 rounded">
+                            <div class="text-lg font-semibold">${result.total_score.toFixed(1)}</div>
+                            <div class="text-sm text-gray-400">Total Score</div>
+                        </div>
+                        <div class="text-center p-3 bg-gray-800 rounded">
+                            <div class="text-lg font-semibold">${result.correct_answers}/${result.total_questions}</div>
+                            <div class="text-sm text-gray-400">Correct Answers</div>
+                        </div>
+                        <div class="text-center p-3 bg-gray-800 rounded">
+                            <div class="text-lg font-semibold">${result.avg_response_time.toFixed(1)}s</div>
+                            <div class="text-sm text-gray-400">Avg Response Time</div>
+                        </div>
+                        <div class="text-center p-3 bg-gray-800 rounded">
+                            <div class="text-lg font-semibold">${result.session_id.substring(0, 8)}...</div>
+                            <div class="text-sm text-gray-400">Session ID</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         async function loadBenchmarkAgents() {
             try {
                 const response = await fetch('/api/agents');
@@ -1912,8 +2432,67 @@
                 loadAgents();
             } else if (sectionId === 'vibe-check') {
                 loadChatAgents();
-            } else if (sectionId === 'benchmark') {
-                loadBenchmarkAgents();
+                    } else if (sectionId === 'benchmark') {
+            loadBenchmarkAgents();
+            loadBenchmarkOverview();
+            
+            // Set up exam builder form handler
+            setTimeout(() => {
+                const examBuilderForm = document.getElementById('exam-builder-form');
+                if (examBuilderForm && !examBuilderForm.dataset.handlerAttached) {
+                    examBuilderForm.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        
+                        const formData = {
+                            subject: document.getElementById('exam-subject').value,
+                            difficulty: document.getElementById('exam-difficulty').value,
+                            num_questions: parseInt(document.getElementById('exam-num-questions').value),
+                            time_limit: parseInt(document.getElementById('exam-time-limit').value),
+                            description: document.getElementById('exam-description').value,
+                            target_skills: document.getElementById('exam-target-skills').value.split(',').map(s => s.trim()).filter(s => s)
+                        };
+                        
+                        document.getElementById('exam-generation-progress').classList.remove('hidden');
+                        document.getElementById('generation-status').textContent = 'Generating exam...';
+                        
+                        try {
+                            const response = await fetch('/api/exams/build', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(formData)
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                document.getElementById('generation-status').textContent = 'Exam generated successfully!';
+                                showToast(`Exam "${result.name}" created successfully!`, 'success');
+                                
+                                // Reset form
+                                examBuilderForm.reset();
+                                
+                                // Hide progress after 3 seconds
+                                setTimeout(() => {
+                                    document.getElementById('exam-generation-progress').classList.add('hidden');
+                                }, 3000);
+                                
+                                // Refresh available exams if on that tab
+                                if (currentBenchmarkTab === 'available-exams') {
+                                    loadAvailableExams();
+                                }
+                            } else {
+                                document.getElementById('generation-status').textContent = 'Generation failed';
+                                showToast(result.detail || 'Failed to generate exam', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Failed to generate exam', error);
+                            document.getElementById('generation-status').textContent = 'Generation failed';
+                            showToast('Error generating exam: ' + error.message, 'error');
+                        }
+                    });
+                    examBuilderForm.dataset.handlerAttached = 'true';
+                }
+            }, 100);
             }
         }
 

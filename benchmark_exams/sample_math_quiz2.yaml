@@ -1,0 +1,21 @@
+description: Basic arithmetic questions for testing
+name: Sample Math Quiz2
+slug: sample_math_quiz2
+tasks:
+- answer: '4'
+  eval: equals
+  id: q1
+  prompt: What is 2 + 2?
+- answer: '15'
+  eval: equals
+  id: q2
+  prompt: What is 5 * 3?
+- answer: '4'
+  eval: equals
+  id: q3
+  prompt: What is the square root of 16?
+- answer: '0.9'
+  eval: equals
+  id: q4
+  prompt: Which is larger 0.11 or 0.9?
+timeout: 300

@@ -1,0 +1,97 @@
+slug: hellaswag_commonsense
+name: "HellaSwag Commonsense Reasoning"
+description: "Commonsense natural language inference benchmark requiring world knowledge and situational understanding"
+timeout: 900
+source: "Based on HellaSwag dataset (Zellers et al., 2019)"
+category: "Commonsense Reasoning"
+difficulty: "Intermediate"
+tasks:
+  - id: cooking_scenario_1
+    prompt: "A person is making pancakes. They pour batter into a hot pan and it starts to bubble. What happens next? (A) The pancakes turn into waffles (B) They flip the pancake when the edges look set (C) They add more batter to the same spot (D) They put the pan in the refrigerator"
+    answer: "B"
+    eval: equals
+    explanation: "When making pancakes, you wait for bubbles to form and edges to set before flipping. This is basic cooking knowledge."
+    
+  - id: weather_scenario_1
+    prompt: "Dark clouds gather in the sky and the wind picks up. People start looking up nervously. What is most likely to happen next? (A) It will start snowing (B) A rainbow will appear (C) It will start raining (D) The sun will get brighter"
+    answer: "C"
+    eval: equals
+    explanation: "Dark clouds and wind typically precede rain. People looking up nervously suggests incoming bad weather."
+    
+  - id: social_scenario_1
+    prompt: "At a birthday party, someone brings out a cake with lit candles. Everyone gathers around and starts singing. What happens next? (A) They blow out the candles (B) They eat the cake immediately (C) They light more candles (D) They throw the cake away"
+    answer: "A"
+    eval: equals
+    explanation: "The typical sequence is singing Happy Birthday followed by the birthday person blowing out candles."
+    
+  - id: driving_scenario_1
+    prompt: "A driver approaches a red traffic light. There are other cars ahead that have stopped. What should the driver do? (A) Speed up to beat the light (B) Honk the horn loudly (C) Stop behind the other cars (D) Make a U-turn immediately"
+    answer: "C"
+    eval: equals
+    explanation: "Basic traffic rules require stopping at red lights, and stopping behind other vehicles that are already stopped."
+    
+  - id: pet_scenario_1
+    prompt: "A dog owner takes out a leash and walks toward their dog. The dog sees this and starts wagging its tail excitedly. What happens next? (A) The dog hides under the bed (B) The owner puts the leash on the dog for a walk (C) The dog starts eating the leash (D) The owner puts the leash away"
+    answer: "B"
+    eval: equals
+    explanation: "Dogs typically get excited when they see a leash because it means walk time. The logical next step is putting on the leash."
+    
+  - id: phone_scenario_1
+    prompt: "Someone's phone rings while they're in an important meeting. They quickly reach for their phone. What are they most likely to do? (A) Answer it and have a long conversation (B) Throw the phone out the window (C) Decline the call or put it on silent (D) Pass the phone to someone else to answer"
+    answer: "C"
+    eval: equals
+    explanation: "In professional settings, people typically silence or decline calls to avoid disrupting meetings."
+    
+  - id: shopping_scenario_1
+    prompt: "A person fills their shopping cart with groceries and heads to checkout. There's a long line at the register. What do they typically do? (A) Leave all the groceries and go home (B) Wait in line with their cart (C) Start eating the groceries while waiting (D) Ask other shoppers to hold their place while they leave"
+    answer: "B"
+    eval: equals
+    explanation: "Normal shopping behavior involves waiting in line to pay for groceries, even when lines are long."
+    
+  - id: exercise_scenario_1
+    prompt: "Someone puts on running shoes, stretches their legs, and heads outside on a sunny morning. What are they most likely going to do? (A) Go grocery shopping (B) Take a nap on the grass (C) Go for a run or jog (D) Start gardening"
+    answer: "C"
+    eval: equals
+    explanation: "The context clues (running shoes, stretching, going outside) strongly suggest the person is preparing to run."
+    
+  - id: sleep_scenario_1
+    prompt: "It's late at night, someone changes into pajamas, brushes their teeth, and turns off the lights. What happens next? (A) They start cooking dinner (B) They go to bed (C) They begin exercising (D) They turn all the lights back on"
+    answer: "B"
+    eval: equals
+    explanation: "The sequence of nighttime routine activities (pajamas, teeth brushing, lights off) indicates preparation for sleep."
+    
+  - id: library_scenario_1
+    prompt: "A student enters a library carrying textbooks and sits down at a quiet table. They open a notebook and textbook. What are they most likely to do next? (A) Start playing loud music (B) Begin studying or reading (C) Take a nap on the table (D) Start a phone conversation"
+    answer: "B"
+    eval: equals
+    explanation: "The context (library, textbooks, notebook, quiet table) clearly indicates studying behavior."
+    
+  - id: restaurant_scenario_1
+    prompt: "A customer sits down at a restaurant table. A server approaches with menus and a notepad. What happens next? (A) The server starts cleaning other tables (B) The customer leaves immediately (C) The server gives the customer a menu (D) They discuss the weather for an hour"
+    answer: "C"
+    eval: equals
+    explanation: "Standard restaurant service involves servers providing menus to customers who have just been seated."
+    
+  - id: gardening_scenario_1
+    prompt: "Someone waters their garden plants in the morning. The soil was dry and the plants looked droopy. What will likely happen later? (A) The plants will wilt more (B) The plants will perk up and look healthier (C) The plants will turn different colors (D) New plants will immediately grow"
+    answer: "B"
+    eval: equals
+    explanation: "Watering dry, droopy plants typically results in them recovering and looking healthier as they absorb water."
+    
+  - id: technology_scenario_1
+    prompt: "Someone's laptop battery shows 5% remaining and starts beeping warnings. They're in the middle of important work. What should they do? (A) Continue working until it dies (B) Close the laptop and ignore it (C) Find a charger and plug it in (D) Restart the laptop multiple times"
+    answer: "C"
+    eval: equals
+    explanation: "When a laptop battery is critically low, the logical action is to connect a charger to continue working."
+    
+  - id: bus_scenario_1
+    prompt: "A person runs toward a bus stop as they see their bus approaching. The bus stops and opens its doors. What happens next? (A) The person keeps running past the bus (B) The person gets on the bus (C) The bus drives away immediately (D) The person starts directing traffic"
+    answer: "B"
+    eval: equals
+    explanation: "When someone runs to catch a bus and it stops with doors open, the natural action is boarding the bus."
+    
+  - id: email_scenario_1
+    prompt: "Someone receives an email marked 'URGENT' from their boss asking for a report by end of day. What should they do? (A) Delete the email without reading it (B) Prioritize and work on the report (C) Forward it to a random colleague (D) Reply with vacation photos"
+    answer: "B"
+    eval: equals
+    explanation: "Urgent requests from supervisors typically require immediate attention and appropriate action (working on the requested report)." 

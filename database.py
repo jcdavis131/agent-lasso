@@ -98,6 +98,54 @@ def init_db():
         )
     ''')
     
+    # Table for exam sessions
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS exam_sessions (
+            session_id TEXT PRIMARY KEY,
+            exam_slug TEXT NOT NULL,
+            agent_id INTEGER NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            accuracy REAL DEFAULT 0.0,
+            total_score REAL DEFAULT 0.0,
+            avg_response_time REAL DEFAULT 0.0,
+            total_questions INTEGER DEFAULT 0,
+            correct_answers INTEGER DEFAULT 0,
+            metadata TEXT,
+            FOREIGN KEY (agent_id) REFERENCES agent_configs (id)
+        )
+    ''')
+    
+    # Table for detailed exam results
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS exam_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            task_id TEXT NOT NULL,
+            correct BOOLEAN NOT NULL,
+            confidence REAL DEFAULT 0.0,
+            response TEXT,
+            expected TEXT,
+            feedback TEXT,
+            response_time REAL DEFAULT 0.0,
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (session_id) REFERENCES exam_sessions (session_id)
+        )
+    ''')
+    
+    # Table for exam analytics
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS exam_analytics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            exam_slug TEXT NOT NULL,
+            total_sessions INTEGER DEFAULT 0,
+            avg_accuracy REAL DEFAULT 0.0,
+            avg_response_time REAL DEFAULT 0.0,
+            last_updated TEXT NOT NULL,
+            UNIQUE(exam_slug)
+        )
+    ''')
+    
     db.commit()
 
 # --- Agent Configuration CRUD Functions ---
@@ -407,4 +455,181 @@ def get_leaderboard(limit: int = 10):
         (limit,),
     )
     rows = cursor.fetchall()
-    return [dict_from_row(r) for r in rows] 
+    return [dict_from_row(r) for r in rows]
+
+# Add new functions for exam data management
+
+def add_exam_session(session_id: str, exam_slug: str, agent_id: int, 
+                    start_time: str, end_time: str = None, 
+                    accuracy: float = 0.0, total_score: float = 0.0,
+                    avg_response_time: float = 0.0, total_questions: int = 0,
+                    correct_answers: int = 0, metadata: dict = None):
+    """Add exam session to database"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    metadata_json = json.dumps(metadata) if metadata else None
+    
+    cursor.execute('''
+        INSERT OR REPLACE INTO exam_sessions 
+        (session_id, exam_slug, agent_id, start_time, end_time, accuracy, 
+         total_score, avg_response_time, total_questions, correct_answers, metadata)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, exam_slug, agent_id, start_time, end_time, accuracy,
+          total_score, avg_response_time, total_questions, correct_answers, metadata_json))
+    
+    db.commit()
+
+def add_exam_result(session_id: str, task_id: str, correct: bool, 
+                   confidence: float, response: str, expected: str,
+                   feedback: str, response_time: float, timestamp: str):
+    """Add individual exam result to database"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('''
+        INSERT INTO exam_results 
+        (session_id, task_id, correct, confidence, response, expected, feedback, response_time, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, task_id, correct, confidence, response, expected, feedback, response_time, timestamp))
+    
+    db.commit()
+
+def get_exam_session(session_id: str):
+    """Get exam session by ID"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('SELECT * FROM exam_sessions WHERE session_id = ?', (session_id,))
+    row = cursor.fetchone()
+    
+    if row:
+        session_data = dict_from_row(row)
+        
+        # Get results for this session
+        cursor.execute('SELECT * FROM exam_results WHERE session_id = ? ORDER BY timestamp', (session_id,))
+        results = [dict_from_row(r) for r in cursor.fetchall()]
+        
+        session_data['results'] = results
+        return session_data
+    
+    return None
+
+def get_exam_sessions_by_agent(agent_id: int, limit: int = 20):
+    """Get exam sessions for a specific agent"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('''
+        SELECT * FROM exam_sessions 
+        WHERE agent_id = ? 
+        ORDER BY start_time DESC 
+        LIMIT ?
+    ''', (agent_id, limit))
+    
+    return [dict_from_row(row) for row in cursor.fetchall()]
+
+def get_exam_sessions_by_slug(exam_slug: str, limit: int = 20):
+    """Get exam sessions for a specific exam"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('''
+        SELECT * FROM exam_sessions 
+        WHERE exam_slug = ? 
+        ORDER BY start_time DESC 
+        LIMIT ?
+    ''', (exam_slug, limit))
+    
+    return [dict_from_row(row) for row in cursor.fetchall()]
+
+def update_exam_analytics(exam_slug: str):
+    """Update analytics for an exam"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Calculate analytics from sessions
+    cursor.execute('''
+        SELECT 
+            COUNT(*) as total_sessions,
+            AVG(accuracy) as avg_accuracy,
+            AVG(avg_response_time) as avg_response_time
+        FROM exam_sessions 
+        WHERE exam_slug = ? AND end_time IS NOT NULL
+    ''', (exam_slug,))
+    
+    stats = cursor.fetchone()
+    
+    if stats and stats['total_sessions'] > 0:
+        cursor.execute('''
+            INSERT OR REPLACE INTO exam_analytics 
+            (exam_slug, total_sessions, avg_accuracy, avg_response_time, last_updated)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (exam_slug, stats['total_sessions'], stats['avg_accuracy'], 
+              stats['avg_response_time'], datetime.now().isoformat()))
+        
+        db.commit()
+
+def get_exam_analytics(exam_slug: str):
+    """Get analytics for an exam"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('SELECT * FROM exam_analytics WHERE exam_slug = ?', (exam_slug,))
+    row = cursor.fetchone()
+    
+    if row:
+        return dict_from_row(row)
+    
+    # If no analytics exist, calculate them
+    update_exam_analytics(exam_slug)
+    
+    cursor.execute('SELECT * FROM exam_analytics WHERE exam_slug = ?', (exam_slug,))
+    row = cursor.fetchone()
+    
+    return dict_from_row(row) if row else None
+
+def get_exam_leaderboard(exam_slug: str = None, limit: int = 10):
+    """Get leaderboard for exams"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    if exam_slug:
+        # Leaderboard for specific exam
+        cursor.execute('''
+            SELECT 
+                es.agent_id,
+                ac.name as agent_name,
+                ac.provider,
+                ac.model,
+                es.accuracy,
+                es.total_score,
+                es.avg_response_time,
+                es.start_time
+            FROM exam_sessions es
+            JOIN agent_configs ac ON es.agent_id = ac.id
+            WHERE es.exam_slug = ? AND es.end_time IS NOT NULL
+            ORDER BY es.accuracy DESC, es.avg_response_time ASC
+            LIMIT ?
+        ''', (exam_slug, limit))
+    else:
+        # Overall leaderboard across all exams
+        cursor.execute('''
+            SELECT 
+                es.agent_id,
+                ac.name as agent_name,
+                ac.provider,
+                ac.model,
+                AVG(es.accuracy) as avg_accuracy,
+                AVG(es.total_score) as avg_total_score,
+                AVG(es.avg_response_time) as avg_response_time,
+                COUNT(*) as total_exams
+            FROM exam_sessions es
+            JOIN agent_configs ac ON es.agent_id = ac.id
+            WHERE es.end_time IS NOT NULL
+            GROUP BY es.agent_id
+            ORDER BY AVG(es.accuracy) DESC, AVG(es.avg_response_time) ASC
+            LIMIT ?
+        ''', (limit,))
+    
+    return [dict_from_row(row) for row in cursor.fetchall()] 

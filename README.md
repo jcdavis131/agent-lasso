@@ -79,8 +79,16 @@ for t in get_tools():
 Configure via `config.GRAPHRAG_CONFIG` or override with environment variables.
 
 ---
-## 🧪 Benchmarking
-The `/api/benchmark/*` endpoints let you execute pluggable test harnesses (see `benchmarks.py`).  Results are stored and a live leaderboard is available in the UI.
+## 🧪 Benchmark Exams
+Silver Lasso now ships with *exam-style* benchmark suites that put complete agentic systems through their paces and rank them against one another.
+
+**Key features**
+* Curated multi-turn tasks that measure retrieval-augmented generation, planning & tool-use, long-term memory, reflection and hallucination control.
+* Deterministic grading rubric – each question has a JSON answer key plus pytest-style assertions for automatic scoring.
+* Invoke `/api/benchmark/*` to run a single exam or sweep an entire agent fleet.
+* Scores (accuracy, latency, cost) are persisted to SQLite and surfaced in a live, sortable leaderboard UI.
+* Plug-and-play: drop a YAML file in `benchmarks/` to register your own custom exam.
+* Need help crafting that YAML? Fire up the built-in `ExamBuilder` agent from the UI, give it your domain docs and desired skills, and it will scaffold a ready-to-run exam file for you.
 
 ---
 ## ⚙️ Configuration Cheatsheet
@@ -138,6 +146,5 @@ Silver Lasso stands on the shoulders of giants. Huge thanks to the open-source c
 * [Sentence-Transformers](https://www.sbert.net/) – lightweight embeddings powering GraphRAG.
 * [Neo4j](https://neo4j.com/) – optional vector & graph backend.
 * LLM providers – [OpenAI](https://openai.com/), [Anthropic](https://www.anthropic.com/), [Mistral AI](https://mistral.ai/), [Groq](https://groq.com/).
-* And the countless maintainers of Python libraries we rely on every day—`requests`, `pydantic`, `pandas`, `beautifulsoup4`, and many more.
 
 Your work and generosity make Silver Lasso possible. Thank you!

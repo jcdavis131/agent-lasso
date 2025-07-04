@@ -13,6 +13,7 @@ from database import (
     init_db,
     add_agent_config,
     get_agent_configs,
+    get_agent_config,
     update_agent_config,
     delete_agent_config,
     add_message,
@@ -38,6 +39,8 @@ import uuid
 import asyncio
 from datetime import datetime
 from benchmarks import BENCHMARK_PLUGINS
+from benchmark_exam_engine import exam_engine
+from exam_builder_agent import exam_builder, ExamRequirements, ExamType, create_exam_from_requirements
 
 # Models for request/response validation
 class CreateAgentRequest(BaseModel):
@@ -83,6 +86,20 @@ class BenchmarkResult(BaseModel):
     score: float
     details: dict
     timestamp: str
+
+# Add new request models for exam system
+class ExamBuilderRequest(BaseModel):
+    subject: str = Field(..., description="Subject of the exam")
+    difficulty: str = Field(..., description="Difficulty level (Basic, Intermediate, Advanced, Expert)")
+    num_questions: int = Field(..., description="Number of questions")
+    exam_type: str = Field(default="multiple_choice", description="Type of exam")
+    target_skills: List[str] = Field(default=[], description="Target skills to assess")
+    time_limit: int = Field(default=600, description="Time limit in seconds")
+    description: str = Field(default="", description="Description of the exam")
+
+class ExamRunRequest(BaseModel):
+    exam_slug: str = Field(..., description="Slug of the exam to run")
+    agent_id: int = Field(..., description="Agent ID to run the exam")
 
 # Custom middleware for error handling and logging
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
@@ -352,6 +369,20 @@ async def home(request: Request, chat: str = None):
         logger.error(f"Error rendering home page: {str(e)}")
         raise HTTPException(status_code=500, detail="Error loading page")
 
+@app.get("/benchmark_dashboard", response_class=HTMLResponse)
+async def benchmark_dashboard(request: Request):
+    """Comprehensive benchmark testing dashboard"""
+    try:
+        return templates.TemplateResponse(
+            "benchmark_dashboard.html",
+            {
+                "request": request
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error rendering benchmark dashboard: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error loading benchmark dashboard")
+
 # API routes
 @router.get("/tools")
 async def get_available_tools():
@@ -584,7 +615,7 @@ async def update_agent(
         provider, model = validated_model
         
         # Get existing agent to preserve unchanged values
-        existing_agent = get_agent_configs(agent_id)
+        existing_agent = get_agent_config(agent_id)
         if not existing_agent:
             raise HTTPException(status_code=404, detail="Agent not found")
             
@@ -1057,6 +1088,224 @@ def _bootstrap_default_agents():
 
 # Run bootstrap step immediately after DB init
 _bootstrap_default_agents()
+
+# Add new API endpoints after the existing benchmark endpoints
+
+@router.get("/exams/available")
+async def get_available_exams():
+    """Get list of available YAML exams"""
+    try:
+        exams = exam_engine.get_available_exams()
+        return {"exams": exams, "count": len(exams)}
+    except Exception as e:
+        logger.error(f"Error getting available exams: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get available exams")
+
+@router.get("/exams/{exam_slug}")
+async def get_exam_details(exam_slug: str):
+    """Get details of a specific exam"""
+    try:
+        exam = exam_engine.get_exam_by_slug(exam_slug)
+        if not exam:
+            raise HTTPException(status_code=404, detail="Exam not found")
+        
+        return {
+            "slug": exam.slug,
+            "name": exam.name,
+            "description": exam.description,
+            "category": exam.category.value,
+            "difficulty": exam.difficulty.value,
+            "timeout": exam.timeout,
+            "source": exam.source,
+            "task_count": exam.get_task_count(),
+            "difficulty_score": exam.get_difficulty_score(),
+            "tasks": [
+                {
+                    "id": task.id,
+                    "prompt": task.prompt,
+                    "answer": task.answer,
+                    "explanation": task.explanation,
+                    "tags": task.tags,
+                    "difficulty_weight": task.difficulty_weight
+                }
+                for task in exam.tasks
+            ]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting exam details: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get exam details")
+
+@router.post("/exams/run")
+async def run_exam(request: ExamRunRequest):
+    """Run a specific exam with an agent"""
+    try:
+        # Get agent
+        agent_config = get_agent_config(request.agent_id)
+        if not agent_config:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Create agent instance
+        agent = DaivisAgent(
+            agent_id=request.agent_id,
+            provider=agent_config["provider"],
+            model=agent_config["model"],
+            tools=json.loads(agent_config["tools"])
+        )
+        
+        # Create async wrapper for the agent
+        async def agent_runner(prompt: str, session_id: str) -> str:
+            return agent.run(prompt, session_id)
+        
+        # Run the exam
+        session = await exam_engine.run_exam(request.exam_slug, request.agent_id, agent_runner)
+        
+        # Store result in database
+        add_benchmark_result(
+            session.session_id,
+            request.agent_id,
+            request.exam_slug,
+            session.accuracy,
+            {
+                "exam_slug": session.exam_slug,
+                "accuracy": session.accuracy,
+                "total_score": session.total_score,
+                "avg_response_time": session.avg_response_time,
+                "total_questions": len(session.results),
+                "correct_answers": sum(1 for r in session.results if r.correct)
+            }
+        )
+        
+        return {
+            "session_id": session.session_id,
+            "exam_slug": session.exam_slug,
+            "accuracy": session.accuracy,
+            "total_score": session.total_score,
+            "avg_response_time": session.avg_response_time,
+            "total_questions": len(session.results),
+            "correct_answers": sum(1 for r in session.results if r.correct),
+            "results": [
+                {
+                    "task_id": r.task_id,
+                    "correct": r.correct,
+                    "response": r.response,
+                    "expected": r.expected,
+                    "feedback": r.feedback,
+                    "response_time": r.response_time
+                }
+                for r in session.results
+            ]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error running exam: {e}")
+        raise HTTPException(status_code=500, detail="Failed to run exam")
+
+@router.get("/exams/analytics/{exam_slug}")
+async def get_exam_analytics(exam_slug: str):
+    """Get analytics for a specific exam"""
+    try:
+        analytics = exam_engine.get_exam_analytics(exam_slug)
+        return analytics
+    except Exception as e:
+        logger.error(f"Error getting exam analytics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get exam analytics")
+
+@router.post("/exams/build")
+async def build_exam(request: ExamBuilderRequest):
+    """Build a new exam using the ExamBuilder agent"""
+    try:
+        # Create exam requirements
+        requirements = ExamRequirements(
+            subject=request.subject,
+            difficulty=request.difficulty,
+            num_questions=request.num_questions,
+            exam_type=ExamType(request.exam_type),
+            target_skills=request.target_skills,
+            time_limit=request.time_limit,
+            description=request.description
+        )
+        
+        # Generate exam
+        exam_data = exam_builder.generate_exam(requirements)
+        
+        # Save exam to file
+        file_path = exam_builder.save_exam_to_file(exam_data)
+        
+        # Reload exams to include the new one
+        exam_engine.load_all_exams()
+        
+        return {
+            "exam_slug": exam_data["slug"],
+            "name": exam_data["name"],
+            "description": exam_data["description"],
+            "file_path": file_path,
+            "task_count": len(exam_data["tasks"]),
+            "message": "Exam created successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error building exam: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to build exam: {str(e)}")
+
+@router.get("/exams/session/{session_id}")
+async def get_exam_session(session_id: str):
+    """Get results for a specific exam session"""
+    try:
+        session = exam_engine.get_session_results(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        return {
+            "session_id": session.session_id,
+            "exam_slug": session.exam_slug,
+            "agent_id": session.agent_id,
+            "start_time": session.start_time.isoformat(),
+            "end_time": session.end_time.isoformat() if session.end_time else None,
+            "accuracy": session.accuracy,
+            "total_score": session.total_score,
+            "avg_response_time": session.avg_response_time,
+            "total_questions": len(session.results),
+            "correct_answers": sum(1 for r in session.results if r.correct),
+            "results": [
+                {
+                    "task_id": r.task_id,
+                    "correct": r.correct,
+                    "response": r.response,
+                    "expected": r.expected,
+                    "feedback": r.feedback,
+                    "response_time": r.response_time,
+                    "timestamp": r.timestamp.isoformat()
+                }
+                for r in session.results
+            ]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting exam session: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get exam session")
+
+@router.post("/exams/reload")
+async def reload_exams():
+    """Reload all YAML exams from the benchmark_exams directory"""
+    try:
+        exam_engine.load_all_exams()
+        
+        # Re-register exams in benchmark system
+        from benchmarks import register_yaml_exams
+        register_yaml_exams()
+        
+        exams = exam_engine.get_available_exams()
+        return {
+            "message": "Exams reloaded successfully",
+            "exam_count": len(exams),
+            "exams": list(exams.keys())
+        }
+    except Exception as e:
+        logger.error(f"Error reloading exams: {e}")
+        raise HTTPException(status_code=500, detail="Failed to reload exams")
 
 # Include router
 app.include_router(router)

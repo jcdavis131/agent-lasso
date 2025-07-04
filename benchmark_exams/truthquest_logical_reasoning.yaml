@@ -1,0 +1,67 @@
+slug: truthquest_logical_reasoning
+name: "TruthQuest: Logical Reasoning"
+description: "Knights and knaves logic puzzles testing suppositional reasoning capabilities based on TruthQuest benchmark"
+timeout: 900
+source: "Based on TruthQuest (Mondorf & Plank, 2024)"
+category: "Logical Reasoning"
+difficulty: "Intermediate"
+tasks:
+  - id: basic_knight_knave_1
+    prompt: "On an island, knights always tell the truth and knaves always lie. Person A says: 'I am a knave.' What is Person A?"
+    answer: "impossible"
+    eval: contains
+    explanation: "If A is a knight, then A tells the truth, but A claims to be a knave (contradiction). If A is a knave, then A lies, but A claims to be a knave (which would be true, contradiction). Therefore, this statement is impossible."
+    
+  - id: basic_knight_knave_2
+    prompt: "Person B says: 'I am a knight.' What is Person B?"
+    answer: "knight"
+    eval: contains
+    explanation: "If B is a knight, then B tells the truth, and B claims to be a knight (consistent). If B is a knave, then B lies, but B claims to be a knight (which would be false, consistent with lying). However, a knave claiming to be a knight is lying about their nature, so B must be a knight."
+    
+  - id: two_person_puzzle_1
+    prompt: "Person C says: 'Person D is a knave.' Person D says: 'Person C is a knight.' What are C and D?"
+    answer: "C is knight, D is knight"
+    eval: contains
+    explanation: "If C is a knight (tells truth), then D is a knave. But D says C is a knight, which is true, so D would be telling truth (contradiction - knaves can't tell truth). If C is a knave (lies), then D is actually a knight. D says C is a knight, which is false, but knights tell truth (contradiction). The only consistent solution is both are knights."
+    
+  - id: three_person_puzzle_1
+    prompt: "Person E says: 'At least one of us three is a knave.' Person F says: 'Person E is telling the truth.' Person G says: 'I am the only knave among us three.' What are E, F, and G?"
+    answer: "E is knight, F is knight, G is knave"
+    eval: contains
+    explanation: "If all three were knights, E's statement would be false (contradiction). If E is a knave, then E's statement is false, meaning all three are knights (contradiction). So E is a knight and at least one other is a knave. F agrees with E, so F is also a knight. G claims to be the only knave, which must be true since E and F are knights."
+    
+  - id: complex_reasoning_1
+    prompt: "Person H says: 'If I am a knight, then Person I is a knave.' What can you conclude about H and I?"
+    answer: "H is knave, I can be either"
+    eval: contains
+    explanation: "If H is a knight, then H's statement is true, so I is a knave. If H is a knave, then H's statement is false. The statement 'If I am a knight, then I is a knave' being false means H is a knight AND I is a knight. But this contradicts our assumption that H is a knave. Therefore, H must be a knave, and I's nature cannot be determined from this information alone."
+    
+  - id: self_reference_1
+    prompt: "Person J says: 'This statement is false.' What is Person J?"
+    answer: "impossible"
+    eval: contains
+    explanation: "This creates a logical paradox. If J is a knight (tells truth), then the statement 'This statement is false' is true, which means the statement is false (contradiction). If J is a knave (lies), then the statement is false, which means 'This statement is false' is true (contradiction). This is an impossible statement."
+    
+  - id: nested_logic_1
+    prompt: "Person K says: 'Person L would say that I am a knave.' Person L says: 'Person K would say that I am a knight.' What are K and L?"
+    answer: "K is knave, L is knave"
+    eval: contains
+    explanation: "This requires nested reasoning about what each would say. Through systematic analysis of all possibilities (knight-knight, knight-knave, knave-knight, knave-knave), only the knave-knave combination produces consistent statements where both are lying about what the other would say."
+    
+  - id: group_reasoning_1
+    prompt: "In a group of 4 people, Person M says: 'Exactly two of us are knaves.' Person N says: 'Person M is lying.' Person O says: 'More than half of us are knights.' Person P says: 'Person O is telling the truth.' How many knaves are there?"
+    answer: "2"
+    eval: equals
+    explanation: "If M is telling the truth (exactly 2 knaves), then N is lying (so N is a knave). O says more than half are knights (>2), which means at most 1 knave, contradicting M. So M is lying, meaning it's not exactly 2 knaves. Since N correctly identifies M as lying, N is a knight. Working through the constraints, there are exactly 2 knaves: M and O."
+    
+  - id: probability_logic_1
+    prompt: "Person Q says: 'The probability that Person R is a knight is 0.5.' In this deterministic world of knights and knaves, what is Person Q?"
+    answer: "knave"
+    eval: contains
+    explanation: "In a world where every person is definitively either a knight or knave, there is no probability involved - R is either definitely a knight (probability 1) or definitely a knave (probability 0). Q's statement about probability 0.5 is therefore false, making Q a knave."
+    
+  - id: meta_reasoning_1
+    prompt: "Person S says: 'You cannot determine whether I am a knight or knave from this statement alone.' What is Person S?"
+    answer: "knight"
+    eval: contains
+    explanation: "If S is a knave, then the statement is false, meaning you CAN determine S's nature from the statement alone. But this creates a contradiction - you determined S is a knave, so the statement was false, confirming S is a knave. If S is a knight, the statement is true - you cannot determine S's nature from just this statement. This is consistent, so S is a knight." 

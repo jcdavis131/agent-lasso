@@ -1,0 +1,67 @@
+slug: mmlu_college_mathematics
+name: "MMLU College Mathematics"
+description: "Massive Multitask Language Understanding benchmark for college-level mathematics covering calculus, linear algebra, statistics, and mathematical reasoning"
+timeout: 1800
+source: "Based on MMLU dataset (Hendrycks et al., 2020)"
+category: "Academic Knowledge"
+difficulty: "College Level"
+tasks:
+  - id: calculus_1
+    prompt: "If f(x) = x³ - 3x² + 2x - 1, what is f'(2)?"
+    answer: "2"
+    eval: equals
+    explanation: "f'(x) = 3x² - 6x + 2, so f'(2) = 3(4) - 6(2) + 2 = 12 - 12 + 2 = 2"
+    
+  - id: linear_algebra_1
+    prompt: "What is the determinant of the matrix [[2, 1], [4, 3]]?"
+    answer: "2"
+    eval: equals
+    explanation: "det([[2,1],[4,3]]) = 2×3 - 1×4 = 6 - 4 = 2"
+    
+  - id: statistics_1
+    prompt: "If X ~ N(10, 4), what is P(X < 12)? (Use standard normal table, Φ(1) ≈ 0.84)"
+    answer: "0.84"
+    eval: contains
+    explanation: "Z = (12-10)/2 = 1, so P(X < 12) = Φ(1) ≈ 0.84"
+    
+  - id: probability_1
+    prompt: "A fair coin is flipped 3 times. What is the probability of getting exactly 2 heads?"
+    answer: "3/8"
+    eval: contains
+    explanation: "There are 3 ways to get exactly 2 heads: HHT, HTH, THH. Total outcomes = 8. Probability = 3/8 = 0.375"
+    
+  - id: calculus_2
+    prompt: "What is the integral of x²e^x dx from 0 to 1? (Express as a simplified expression)"
+    answer: "e - 2"
+    eval: contains
+    explanation: "Using integration by parts twice: ∫x²e^x dx = x²e^x - 2xe^x + 2e^x. Evaluating from 0 to 1: (e - 2e + 2e) - (0 - 0 + 2) = e - 2"
+    
+  - id: linear_algebra_2
+    prompt: "What are the eigenvalues of the matrix [[3, 1], [0, 2]]?"
+    answer: "3, 2"
+    eval: contains
+    explanation: "For upper triangular matrix, eigenvalues are the diagonal entries: 3 and 2"
+    
+  - id: discrete_math_1
+    prompt: "How many ways can you arrange the letters in the word 'STATISTICS'?"
+    answer: "50400"
+    eval: equals
+    explanation: "STATISTICS has 10 letters: S(3), T(3), A(1), I(2), C(1). Arrangements = 10!/(3!×3!×1!×2!×1!) = 3628800/144 = 50400"
+    
+  - id: number_theory_1
+    prompt: "What is 7^100 mod 13?"
+    answer: "9"
+    eval: equals
+    explanation: "By Fermat's Little Theorem, 7^12 ≡ 1 (mod 13). 100 = 12×8 + 4, so 7^100 ≡ 7^4 ≡ 2401 ≡ 9 (mod 13)"
+    
+  - id: optimization_1
+    prompt: "Find the minimum value of f(x) = x² - 4x + 7 for x ∈ ℝ."
+    answer: "3"
+    eval: equals
+    explanation: "f'(x) = 2x - 4 = 0 when x = 2. f(2) = 4 - 8 + 7 = 3. Since f''(x) = 2 > 0, this is a minimum."
+    
+  - id: series_1
+    prompt: "What is the sum of the infinite geometric series 1 + 1/2 + 1/4 + 1/8 + ...?"
+    answer: "2"
+    eval: equals
+    explanation: "This is a geometric series with a = 1, r = 1/2. Sum = a/(1-r) = 1/(1-1/2) = 1/(1/2) = 2" 

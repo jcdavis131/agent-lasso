@@ -387,4 +387,140 @@ BENCHMARK_PLUGINS.update({
     "arb": QaDatasetHarness("arb"),
     "gpqa": QaDatasetHarness("gpqa"),
     "truthfulqa": QaDatasetHarness("truthfulqa"),
-}) 
+})
+
+# Add import for the new exam engine
+from benchmark_exam_engine import exam_engine, ExamSession
+from daivis_agent import DaivisAgent
+
+class YAMLExamHarness(BenchmarkHarness):
+    """Harness for running YAML-based benchmark exams"""
+    
+    def __init__(self, exam_slug: str):
+        self.exam_slug = exam_slug
+        exam = exam_engine.get_exam_by_slug(exam_slug)
+        if not exam:
+            raise ValueError(f"Exam not found: {exam_slug}")
+        
+        self.name = exam_slug
+        self.description = f"{exam.name} - {exam.description}"
+        self.default_timeout = exam.timeout
+        self.exam = exam
+    
+    def run(self, agent: DaivisAgent, run_id: str) -> Dict[str, Any]:
+        """Run the YAML exam synchronously"""
+        import asyncio
+        
+        # Create async wrapper for the agent
+        async def agent_runner(prompt: str, session_id: str) -> str:
+            return agent.run(prompt, session_id)
+        
+        # Run the exam
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        try:
+            session = loop.run_until_complete(
+                exam_engine.run_exam(self.exam_slug, agent.agent_id, agent_runner)
+            )
+            
+            # Format results for benchmark system
+            return {
+                "score": session.accuracy,
+                "details": {
+                    "exam_slug": session.exam_slug,
+                    "accuracy": session.accuracy,
+                    "total_score": session.total_score,
+                    "avg_response_time": session.avg_response_time,
+                    "total_questions": len(session.results),
+                    "correct_answers": sum(1 for r in session.results if r.correct),
+                    "session_id": session.session_id,
+                    "results": [
+                        {
+                            "task_id": r.task_id,
+                            "correct": r.correct,
+                            "response": r.response,
+                            "expected": r.expected,
+                            "feedback": r.feedback,
+                            "response_time": r.response_time
+                        }
+                        for r in session.results
+                    ]
+                }
+            }
+        finally:
+            loop.close()
+    
+    def run_iter(self, agent: DaivisAgent, run_id: str):
+        """Stream benchmark execution step-by-step"""
+        import asyncio
+        
+        # Create async wrapper for the agent
+        async def agent_runner(prompt: str, session_id: str) -> str:
+            return agent.run(prompt, session_id)
+        
+        # Run the exam with streaming
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        try:
+            session_id = exam_engine.start_exam_session(self.exam_slug, agent.agent_id)
+            session = exam_engine.active_sessions[session_id]
+            
+            yield {"event": "start", "data": {"exam_slug": self.exam_slug, "session_id": session_id}}
+            
+            # Run each task and yield progress
+            for i, task in enumerate(self.exam.tasks):
+                yield {"event": "task_start", "data": {"task_id": task.id, "prompt": task.prompt}}
+                
+                start_time = time.time()
+                response = agent.run(task.prompt, session_id)
+                response_time = time.time() - start_time
+                
+                correct, confidence, feedback = task.evaluate_response(response)
+                
+                result = {
+                    "task_id": task.id,
+                    "correct": correct,
+                    "confidence": confidence,
+                    "response": response,
+                    "expected": task.answer,
+                    "feedback": feedback,
+                    "response_time": response_time,
+                    "progress": (i + 1) / len(self.exam.tasks)
+                }
+                
+                yield {"event": "task_complete", "data": result}
+            
+            # Calculate final metrics
+            session.end_time = datetime.now()
+            session.calculate_metrics()
+            
+            final_result = {
+                "score": session.accuracy,
+                "accuracy": session.accuracy,
+                "total_score": session.total_score,
+                "avg_response_time": session.avg_response_time,
+                "total_questions": len(session.results),
+                "correct_answers": sum(1 for r in session.results if r.correct)
+            }
+            
+            yield {"event": "final", "data": final_result}
+            
+        finally:
+            loop.close()
+
+# Add all YAML exams to the benchmark plugins
+def register_yaml_exams():
+    """Register all YAML exams as benchmark plugins"""
+    available_exams = exam_engine.get_available_exams()
+    
+    for exam_slug, exam_info in available_exams.items():
+        try:
+            harness = YAMLExamHarness(exam_slug)
+            BENCHMARK_PLUGINS[exam_slug] = harness
+        except Exception as e:
+            logger.error(f"Failed to register YAML exam {exam_slug}: {e}")
+
+# Register YAML exams when module is imported
+register_yaml_exams() 
