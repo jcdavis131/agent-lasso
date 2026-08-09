@@ -6,6 +6,8 @@ from datetime import datetime
 import os
 import json
 
+from crypto_store import encrypt as _encrypt_secret, decrypt as _decrypt_secret
+
 # ---------------------------------------------------------------------------
 # SQLite file location
 # ---------------------------------------------------------------------------
@@ -155,6 +157,17 @@ def dict_from_row(row: sqlite3.Row) -> Dict[str, Any]:
     if not row: return {}
     return dict(row)
 
+def _decrypt_agent_row(agent: Dict[str, Any]) -> Dict[str, Any]:
+    """Decrypt sensitive fields on an agent-config dict in place.
+
+    The stored ``api_keys`` blob is encrypted at rest. Legacy plaintext rows
+    (written before encryption existed) are returned unchanged because
+    ``crypto_store.decrypt`` falls back to the raw value on decryption failure.
+    """
+    if agent and agent.get("api_keys") is not None:
+        agent["api_keys"] = _decrypt_secret(agent["api_keys"])
+    return agent
+
 def add_agent_config(name: str, description: str, provider: str, model: str, tools_json: str, system_prompt: str = "", api_keys: str = None) -> int:
     """Adds a new agent configuration to the database."""
     db = get_db()
@@ -176,9 +189,12 @@ def add_agent_config(name: str, description: str, provider: str, model: str, too
         cursor.execute("ALTER TABLE agent_configs ADD COLUMN api_keys TEXT")
         db.commit()
     
+    # Encrypt the API keys blob at rest before persisting.
+    encrypted_api_keys = _encrypt_secret(api_keys)
+
     cursor.execute(
         "INSERT INTO agent_configs (name, description, provider, model, tools, system_prompt, api_keys) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (name, description, provider, model, tools_json, system_prompt, api_keys)
+        (name, description, provider, model, tools_json, system_prompt, encrypted_api_keys)
     )
     db.commit()
     return cursor.lastrowid
@@ -189,7 +205,7 @@ def get_agent_configs() -> List[Dict[str, Any]]:
     cursor = db.cursor()
     cursor.execute("SELECT * FROM agent_configs ORDER BY created_at DESC")
     rows = cursor.fetchall()
-    return [dict_from_row(row) for row in rows]
+    return [_decrypt_agent_row(dict_from_row(row)) for row in rows]
 
 def get_agent_config(agent_id: int) -> Dict[str, Any]:
     """Retrieves a single agent configuration by its ID."""
@@ -197,7 +213,7 @@ def get_agent_config(agent_id: int) -> Dict[str, Any]:
     cursor = db.cursor()
     cursor.execute("SELECT * FROM agent_configs WHERE id = ?", (agent_id,))
     row = cursor.fetchone()
-    return dict_from_row(row)
+    return _decrypt_agent_row(dict_from_row(row))
 
 def update_agent_config(agent_id: int, name: str, description: str, provider: str, model: str, tools_json: str, system_prompt: str = None, api_keys: str = None):
     """Updates an existing agent configuration."""
@@ -217,7 +233,9 @@ def update_agent_config(agent_id: int, name: str, description: str, provider: st
     
     if api_keys is not None:
         update_fields.append("api_keys = ?")
-        values.append(api_keys)
+        # Encrypt the API keys blob at rest before persisting. This also
+        # transparently re-encrypts any legacy plaintext row on its next save.
+        values.append(_encrypt_secret(api_keys))
     
     values.append(agent_id)
     
