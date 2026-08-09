@@ -5,8 +5,11 @@ Transform complex data into actionable insights.
 """
 
 import os
+import logging
 from dotenv import load_dotenv
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
@@ -175,12 +178,28 @@ MEMORY_CONFIG = {
     "return_messages": True,
 }
 
+# ---------------------------------------------------------------------------
+# Neo4j password resolution
+# ---------------------------------------------------------------------------
+# Never ship a weak hardcoded default. The password must come from the
+# NEO4J_PASSWORD environment variable. If it is unset we default to an empty
+# string and emit a startup warning; connecting to Neo4j will then fail loudly
+# rather than silently authenticating with a well-known default credential.
+# ---------------------------------------------------------------------------
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "")
+if not NEO4J_PASSWORD:
+    logger.warning(
+        "NEO4J_PASSWORD is not set. Set the NEO4J_PASSWORD environment "
+        "variable before enabling Neo4j (ENABLE_NEO4J=true); GraphRAG will "
+        "not be able to authenticate against Neo4j without it."
+    )
+
 # GraphRAG Configuration
 GRAPHRAG_CONFIG = {
     # Neo4j Connection
     "neo4j_uri": os.getenv("NEO4J_URI", "bolt://localhost:7687"),
     "neo4j_user": os.getenv("NEO4J_USER", "neo4j"),
-    "neo4j_password": os.getenv("NEO4J_PASSWORD", "password"),
+    "neo4j_password": NEO4J_PASSWORD,
     "neo4j_database": os.getenv("NEO4J_DATABASE", "neo4j"),
     
     # Embedding Configuration

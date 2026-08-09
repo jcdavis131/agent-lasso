@@ -17,6 +17,9 @@ python-dotenv>=1.0.1
 pydantic>=2.0.0
 requests>=2.32.3
 
+# === Security / at-rest encryption ===
+cryptography>=42,<46
+
 # === LangChain & LangGraph stack ===
 langchain-core>=0.3.65
 langchain-community>=0.3.25

@@ -33,6 +33,10 @@ agent_log.db*
 secrets.txt
 .sesskey
 
+# At-rest encryption key (crypto_store.py) — never commit
+enc.key
+.agent-lasso/
+
 # Vercel build output
 .vercel/
 
