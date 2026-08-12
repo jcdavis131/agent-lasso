@@ -6,7 +6,7 @@ Status: experimental, not maintained since mid-2025. (The UI and some code refer
 
 ## What it does
 
-- Assemble agents from configurable LLM backends (OpenAI, Anthropic, Mistral, Groq) and a set of built-in tools: file operations, basic data analysis, calculator, current time, DuckDuckGo/SearXNG search, arXiv search, optional weather, and an interactive canvas (`tools.py`).
+- Assemble agents from configurable LLM backends (OpenAI, Anthropic, Mistral, Groq) and a set of built-in tools: file operations, basic data analysis, calculator, current time, DuckDuckGo/SearXNG search, arXiv search, optional weather, and an interactive canvas (`tools.py`). The `file_operations` tool is sandboxed to a `workspace/` directory (override with `AGENT_LASSO_FILE_SANDBOX`) so an agent steered by untrusted web content can't read or write files elsewhere on disk.
 - Chat with agents over SSE streaming and keep conversations, agent configs, and scores in a local SQLite database (`agent_log.db`).
 - Run YAML-defined benchmark exams (`benchmark_exams/` — MMLU math, ARC, HellaSwag, Winogrande, and others) against agents via `/api/benchmark/*`, with a sortable leaderboard; an `ExamBuilder` agent can scaffold new exam files.
 - Optional GraphRAG layer (`graphrag_engine.py`): Neo4j 5.x with vector and graph indices, or a zero-dependency in-memory JSON fallback, using Sentence-Transformers embeddings.

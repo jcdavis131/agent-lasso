@@ -37,6 +37,9 @@ secrets.txt
 enc.key
 .agent-lasso/
 
+# Sandbox directory for the file_operations tool (tools.py)
+/workspace/
+
 # Vercel build output
 .vercel/
 

@@ -34,6 +34,52 @@ class FileOperationInput(BaseModel):
     operation: str = Field(description="Operation: read, write, append, delete, list")
 
 
+# ---------------------------------------------------------------------------
+# Sandbox for the file_operations tool
+# ---------------------------------------------------------------------------
+# file_operations is exposed to the LLM as a tool call, and the LLM can be
+# steered by untrusted content it reads (search results, scraped pages,
+# arXiv abstracts, etc. via the other tools). Without a boundary, a prompt
+# injection could make the agent read secrets.txt / ~/.ssh keys / any file
+# the process can see, or overwrite/delete arbitrary files. All file
+# operations are therefore confined to a single sandbox directory.
+#
+# Override the location with the AGENT_LASSO_FILE_SANDBOX environment
+# variable; it defaults to a "workspace" directory next to this file.
+_FILE_SANDBOX_ROOT = Path(
+    os.getenv("AGENT_LASSO_FILE_SANDBOX", str(Path(__file__).parent / "workspace"))
+).resolve()
+_FILE_SANDBOX_ROOT.mkdir(parents=True, exist_ok=True)
+
+
+class FileSandboxError(ValueError):
+    """Raised when a requested path would escape the file_operations sandbox."""
+
+
+def _resolve_sandboxed_path(filename: str) -> Path:
+    """Resolve ``filename`` to an absolute path guaranteed to live inside
+    :data:`_FILE_SANDBOX_ROOT`.
+
+    Rejects absolute paths and any ``..`` traversal (or symlink) that would
+    resolve outside the sandbox, raising :class:`FileSandboxError` instead of
+    silently touching a file elsewhere on disk.
+    """
+    raw = Path(filename)
+    if raw.is_absolute() or (os.name == "nt" and raw.drive):
+        raise FileSandboxError(
+            f"Absolute paths are not allowed ('{filename}'). "
+            f"All file operations are confined to the workspace directory."
+        )
+
+    candidate = (_FILE_SANDBOX_ROOT / raw).resolve()
+    if candidate != _FILE_SANDBOX_ROOT and _FILE_SANDBOX_ROOT not in candidate.parents:
+        raise FileSandboxError(
+            f"Path '{filename}' resolves outside the permitted workspace "
+            f"directory. Access denied."
+        )
+    return candidate
+
+
 class DataAnalysisInput(BaseModel):
     data_source: str = Field(description="Data source (file path or raw data)")
     analysis_type: str = Field(description="Type: summary, correlation, visualization")
@@ -228,8 +274,8 @@ def file_operations(filename: str, content: Optional[str] = None, operation: str
     """Perform file operations: read, write, append, delete, or list directory contents."""
     
     try:
-        path = Path(filename)
-        
+        path = _resolve_sandboxed_path(filename)
+
         if operation == "read":
             if not path.exists():
                 return f"❌ File '{filename}' does not exist"
@@ -277,8 +323,8 @@ def file_operations(filename: str, content: Optional[str] = None, operation: str
                 return f"❌ '{filename}' is a file, not a directory"
             
             if not path.exists():
-                path = Path(".")
-                filename = "current directory"
+                path = _FILE_SANDBOX_ROOT
+                filename = "workspace directory"
             
             items = []
             for item in path.iterdir():
@@ -302,6 +348,8 @@ def file_operations(filename: str, content: Optional[str] = None, operation: str
         else:
             return f"❌ Unknown operation '{operation}'. Supported: read, write, append, delete, list"
     
+    except FileSandboxError as e:
+        return f"❌ {str(e)}"
     except PermissionError:
         return f"❌ Permission denied accessing '{filename}'"
     except Exception as e:
