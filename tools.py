@@ -375,13 +375,23 @@ def data_analysis(data_source: str, analysis_type: str, parameters: Dict[str, An
             )
 
         if data_source.endswith('.csv') or data_source.endswith('.json'):
-            if not Path(data_source).exists():
+            # data_source can name a file on disk. This tool is exposed to the
+            # LLM tool-calling loop, so (like file_operations) it must not let
+            # a prompt injection read arbitrary files (secrets, credentials,
+            # etc.) via a crafted absolute/relative path — confine it to the
+            # same sandbox directory used by file_operations.
+            try:
+                path = _resolve_sandboxed_path(data_source)
+            except FileSandboxError as e:
+                return f"❌ {str(e)}"
+
+            if not path.exists():
                 return f"❌ Data file '{data_source}' not found"
-            
+
             if data_source.endswith('.csv'):
-                df = pd.read_csv(data_source)
+                df = pd.read_csv(path)
             else:
-                df = pd.read_json(data_source)
+                df = pd.read_json(path)
         else:
             try:
                 data = json.loads(data_source)
