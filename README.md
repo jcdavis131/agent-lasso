@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-09-05.** Superseded by the Jarvis daemon in the `dottie` monorepo: https://github.com/jcdavis131/dottie/tree/main/apps/jarvisd (see `docs/JARVIS_HARNESS_PLAN.md` there for the rationale). No development happens here. Agents: do not install, run, or take tasks from this repo; work in dottie.
+
 # Agent Lasso
 
 A local-first web app for configuring LLM agents, chatting with them, and scoring them on exam-style benchmarks. FastAPI backend, LangChain/LangGraph agents, Jinja + Tailwind single-page UI, SQLite persistence.
